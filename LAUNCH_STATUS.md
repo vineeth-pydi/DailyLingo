@@ -17,8 +17,14 @@ Current release checks and publication evidence are recorded below as they compl
 - Browser checks completed all 12 activities in each of the five languages at 100%, verified six saved reviews and progress after reload, and checked seven screens at five viewport sizes (35 combinations) with no horizontal overflow.
 - Phrase search/filtering, draft-first resumption, review reload without duplicate counts, progress export/import, rejected malformed backups, and offline reload/lesson start passed in installed Microsoft Edge. Reduced-motion mode had no JavaScript page errors. Screenshots were inspected on desktop and at 375px.
 - Real microphone capture, installed native voice output, and independent native-speaker course review remain device/content checks; speech lifecycle tests use browser mocks.
-- Current repository target: [vineeth-pydi/DailyLingo](https://github.com/vineeth-pydi/DailyLingo).
-- Current Pages target: [DailyLingo](https://vineeth-pydi.github.io/DailyLingo/). Publication of v0.3.0 is pending.
+- Published repository: [vineeth-pydi/DailyLingo](https://github.com/vineeth-pydi/DailyLingo). The original repository was renamed in place, preserving its ID and commit history.
+- Published app: [DailyLingo](https://vineeth-pydi.github.io/DailyLingo/).
+
+### Verified publication
+
+Release commit [`9ebb38e`](https://github.com/vineeth-pydi/DailyLingo/commit/9ebb38eecbc56849e216e19a2594299319a50b55) passed the [GitHub Pages build and deployment](https://github.com/vineeth-pydi/DailyLingo/actions/runs/37854413596) on 2026-10-08. GitHub reported the workflow completed successfully for that exact commit.
+
+The same browser journeys passed against the published `/DailyLingo/` address: complete lessons in all five languages, 35 route/viewport combinations, saved progress, phrase search/filtering, backup round trips, and offline reload/lesson start. Eight fetched runtime files (HTML, CSS, app/core/drafts/speech modules, service worker, and manifest) matched the tested local build by SHA256. These checks confirm the published release; historical records below remain separate.
 
 ## Historical speech update — v0.2.0
 
