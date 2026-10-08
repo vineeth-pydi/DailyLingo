@@ -4,6 +4,8 @@
 
 **Launch target:** public GitHub repository `vineeth-pydi/FreeLingo`, MIT license, and GitHub Pages website. The app is a PWA, so the same codebase serves the website and an installable phone/desktop app. Native store distribution is a later milestone.
 
+**Launch verified:** [public source](https://github.com/vineeth-pydi/FreeLingo) and [live app](https://vineeth-pydi.github.io/FreeLingo/) are published. The initial [GitHub Actions build and deployment](https://github.com/vineeth-pydi/FreeLingo/actions/runs/37845084544) passed, and the deployed website was opened successfully in the browser. Private vulnerability reporting is enabled. See `LAUNCH_STATUS.md` for validation evidence and release limits.
+
 **v0.1.0 implemented scope:** a dependency-free static application with five starter courses, six lessons and 36 phrases per course; 12 activities per lesson; recognition, sentence arrangement, and typed recall; optional browser speech and reading aids; source-language prompt selection; device-local progress and lesson drafts; scheduled reviews; daily goals/activity views; JSON backup import/export; progress deletion; responsive/RTL layouts; offline caching; and installation metadata/icons.
 
 **Release boundaries:** this is a community alpha. It has no accounts, backend, paid API requirement, microphone capture, certified assessment, complete A1 curriculum, content editor, or native recorded audio. Course text needs independent native-speaker review. Arabic is explicitly MSA only in this release; a dialect course remains a separate future decision. The wider design below is the long-term roadmap, not a statement that every feature exists in v0.1.0.

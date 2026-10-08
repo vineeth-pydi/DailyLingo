@@ -23,15 +23,15 @@ Updated: 2026-10-08 (America/Chicago).
 - The local preview server was stopped, then the app reloaded successfully from its offline cache. The five-course catalog and Mandarin lesson still worked. No browser console errors were reported for that check.
 - The preview server was stopped after verification. Start again with `npm run dev` using Node.js 22+.
 
-## Publication pending
+## Published
 
-Intended repository: `https://github.com/vineeth-pydi/FreeLingo`.
+Public repository: [vineeth-pydi/FreeLingo](https://github.com/vineeth-pydi/FreeLingo).
 
-Expected Pages address: `https://vineeth-pydi.github.io/FreeLingo/`.
+Live app: [vineeth-pydi.github.io/FreeLingo](https://vineeth-pydi.github.io/FreeLingo/).
 
-These are publication targets, not verified live results. GitHub credential access and the browser check found no authenticated GitHub account. A GitHub device sign-in was started; the account owner must complete authentication before repository creation, source push, and Pages configuration/deployment can proceed.
+The public repository was created under the confirmed owner, source was pushed to `main`, and GitHub Pages was configured for workflow builds. The owner completed GitHub's credential authorization. Credentials are stored by Git Credential Manager, not in project files or source history.
 
-Once authentication is available: create/reuse the intended empty public repository, enable Pages with workflow builds, push `main`, confirm the workflow deployment, and record the verified repository and website URLs here. Do not force-push or overwrite unrelated remote history.
+The initial [build and deployment](https://github.com/vineeth-pydi/FreeLingo/actions/runs/37845084544) completed successfully for commit `88e8d0421f99d8290543c4424e28d1a38c454118`. The deployed site was opened at its public Pages URL and rendered the learning dashboard correctly. Private vulnerability reporting is enabled. Later source pushes run the same checks and deployment workflow.
 
 ## Release limitations
 

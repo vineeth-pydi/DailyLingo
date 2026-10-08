@@ -6,6 +6,8 @@ FreeLingo is a free, open source, installable language learning website. Practic
 
 **Status: v0.1.0 community alpha.** These are original starter courses awaiting independent native-speaker review, not complete A1 curricula or certified assessments. Browser audio is synthesized when a compatible voice is available.
 
+**[Open the app](https://vineeth-pydi.github.io/FreeLingo/) · [Source and contributions](https://github.com/vineeth-pydi/FreeLingo)**
+
 ## What works
 
 - Five courses, each with six lessons and 36 everyday phrases (180 phrase forms total).
@@ -46,7 +48,7 @@ The repository includes [`.github/workflows/pages.yml`](.github/workflows/pages.
 3. Run the workflow or push to `main`.
 4. Read the deployed URL from the `github-pages` environment/workflow deployment.
 
-For `vineeth-pydi/FreeLingo`, the expected Pages address is `https://vineeth-pydi.github.io/FreeLingo/`. This is an expected address until the first successful deployment confirms it. All application asset paths are relative so project Pages URLs work correctly.
+The live app for `vineeth-pydi/FreeLingo` is [vineeth-pydi.github.io/FreeLingo](https://vineeth-pydi.github.io/FreeLingo/). All application asset paths are relative so project Pages URLs work correctly.
 
 See [GitHub's custom Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages). For a fork, change the repository URL in `src/config.js` before publishing.
 
