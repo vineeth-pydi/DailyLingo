@@ -14,7 +14,11 @@ Release scope: shared phrase, slow, and word-by-word speaker controls across lea
 - Speaking browser checks passed for all five languages at desktop and 375px: 61 simulated recognition attempts, 44 targeted word replays, and 35 layout checks. Covered opt-in, locale, exact/different/missing/extra words, retry, provider errors, permission withdrawal, navigation/background cancellation, stale results, a real five-second completion timeout, unsupported browsers, and persistent announcements. No page errors or horizontal overflow.
 - Speech API automation uses deterministic browser doubles; it does not verify audible installed voices, physical microphone input, or the browser provider's real recognition accuracy. Those capabilities vary by device and service. Native course review remains pending.
 
-Publication will be recorded after the exact release commit deploys and the live app is checked.
+### Verified publication
+
+Release commit [`5c2b228`](https://github.com/vineeth-pydi/DailyLingo/commit/5c2b228c93469491ca22612d559e316e64bc30fb) passed the [GitHub Pages validation and deployment workflow](https://github.com/vineeth-pydi/DailyLingo/actions/runs/37857939396) on 2026-10-08. GitHub reported success for that exact commit.
+
+The published [DailyLingo app](https://vineeth-pydi.github.io/DailyLingo/#speaking) passed the same full learning regression and guided-speaking browser checks described above. All 15 fetched runtime assets matched the tested build exactly by SHA256, including the new audio and word-feedback modules, service worker, and generated icons. Local source line endings were normalized to match the committed/Linux build before byte comparison. This verifies publication and UI behavior; controlled speech-provider tests do not establish physical microphone or recognition accuracy.
 
 ## Historical DailyLingo update — v0.3.0
 
