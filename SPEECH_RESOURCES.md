@@ -1,6 +1,6 @@
 # Speech resources and a subscription-free roadmap
 
-Researched 2026-10-08. These are candidate resources, not bundled assets. The app currently uses browser voices, local recording, and optional browser transcription. No dataset, speech model, or hosted inference service has been downloaded or integrated.
+Researched 2026-10-08. These are candidate resources, not bundled assets. The v0.4.0 app uses browser voices, a guided browser word check, and optional local recording. No dataset, recognition model, or app-managed hosted inference service is bundled in the app.
 
 ## Datasets
 
@@ -24,10 +24,20 @@ These publisher license labels are a starting point. Pin the selected release an
 ## Models and runtime tools (not datasets)
 
 - [Whisper](https://github.com/openai/whisper): multilingual recognition; publisher releases code and model weights under MIT. It can run locally without a paid API. Transcribing correctly does **not** establish correct pronunciation. Check short phrases, silence hallucinations, accents, noise, and language differences before integration.
-- [Transformers.js](https://huggingface.co/docs/transformers.js/index): candidate browser runtime for an ONNX speech model. An optional downloadable model can let learners transcribe on their own device. Runtime, model, conversion, and training-data licenses need separate review; mobile memory, performance, download size, and offline caching need evaluation. No runtime dependency is installed yet.
+- [Transformers.js](https://huggingface.co/docs/transformers.js/index): candidate browser runtime for an ONNX speech model. An optional downloadable model can let learners transcribe on their own device. Runtime, model, conversion, and training-data licenses need separate review; mobile memory, performance, download size, and offline caching need evaluation. No recognition-model runtime is bundled in the app.
 - TTS engines and voices must be checked separately. An open engine does not guarantee that every downloadable voice is permissively licensed, supports all five languages, or sounds suitable for beginners.
 
 ## Build order
+
+### Current implementation — v0.4.0 browser word check
+
+- Shared speaker icons accompany learning text on Home, Languages, Review, lessons, and Speaking. Normal and slow playback, plus expandable word-by-word controls, let learners replay a phrase or focus on an individual word. Audio uses compatible browser/OS voices; the app does not include native reference recordings. Voice availability depends on the device, browser, installed voices, and language.
+- Speaking follows **Listen → Speak and check → Review and repeat**. Learners hear the example, enable **Allow browser word check**, then choose **Speak and check** to use the browser's recognition service.
+- An ordered transcript comparison labels expected words as heard, try again, or not heard, and lists extra recognized words. Expected words can be replayed slowly before another attempt. Repeated words are matched by occurrence; Mandarin comparison does not depend on the transcript's word spacing.
+- Feedback describes recognized words. It does not assess phonemes, accent, rhythm, or Mandarin tones, and a matching transcript cannot establish correct pronunciation. Speech differences, background noise, and browser recognition errors can all cause a mismatch. No numerical pronunciation grade is shown.
+- The browser speech provider may receive microphone audio, and internet may be required. Word checking begins only after explicit opt-in and a button press; consent is not included in progress backups. Supported browsers require HTTPS or localhost. Listening and recording provide alternatives when browser recognition is unavailable, subject to device capabilities.
+- **Record and compare by ear** is a separate, secondary option: record up to 30 seconds, play back, download, or delete. This recording stays in tab memory, is not uploaded by DailyLingo, and is cleared when changing phrases or leaving Speaking. Microphone capture stops on navigation, hidden tab, errors, or the time limit.
+- Core learning requires no learner account, subscription, payment, or API key. The research and later phases below remain a roadmap, rather than additional shipped speech capabilities.
 
 ### Phase 1 — implemented in v0.2.0
 

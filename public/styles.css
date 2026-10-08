@@ -301,6 +301,7 @@ dialog::backdrop { background: #25372db8; backdrop-filter: blur(5px); }
 .speaking-phrase .reading-aid { color: var(--muted); }
 .speech-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .speech-status { padding: 16px; background: #eef3e7; border-radius: 10px; font-size: 16px !important; color: #3d5537 !important; margin: 18px 0; }
+.speech-announcement { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .recording-playback { display: grid; gap: 12px; margin: 22px 0; }
 .recording-playback label { font-weight: 600; font-size: 16px; }
 .recording-playback audio { width: 100%; max-width: 100%; }
@@ -309,6 +310,31 @@ dialog::backdrop { background: #25372db8; backdrop-filter: blur(5px); }
 .speech-transcript p { font-size: 15px; overflow-wrap: anywhere; }
 .speech-transcript:empty { display: none; }
 .speech-transcript { margin-top: 18px; padding: 15px; border: 1px solid var(--border); border-radius: 10px; }
+.speech-steps { display: flex; gap: 14px; list-style: none; padding: 0; margin: 24px 0; color: var(--muted); font-size: 14px; }
+.speech-steps li { display: flex; gap: 7px; align-items: center; }
+.speech-steps li > span { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: #eef3e7; color: #3d5537; font-weight: 700; }
+.speak-check { padding-top: 26px; margin-top: 26px; border-top: 1px solid var(--border); }
+.speak-check .toggle-row { margin: 18px 0; }
+.speak-check > .button { min-width: 185px; }
+.word-check-placeholder, .word-check-results { padding: 22px; border: 1px solid var(--border); border-radius: 13px; margin: 22px 0; }
+.word-check-placeholder { background: #fafbf7; }
+.word-check-placeholder p, .word-check-results p { font-size: 15px; line-height: 1.7; color: var(--muted); }
+.checked-words { list-style: none; display: grid; gap: 10px; padding: 0; margin: 18px 0; }
+.checked-word { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; }
+.checked-word.retry, .checked-word.missing { background: #fff9ed; border-color: #e6d3a7; }
+.checked-word-heading { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.checked-word-heading > strong { font-size: 19px; overflow-wrap: anywhere; min-width: 0; }
+.checked-word-heading > .audio-button { margin-inline-start: auto; }
+.word-check-state { font-size: 12px; font-weight: 650; color: #526748; }
+.retry .word-check-state, .missing .word-check-state { color: #84622b; }
+.checked-word > p { margin-bottom: 0; }
+.self-recording { padding: 18px 0; border-block: 1px solid var(--border); }
+.self-recording > summary { cursor: pointer; min-height: 44px; display: list-item; align-content: center; font-weight: 650; color: #3d5537; }
+.speaking-target .audio-line { justify-content: center; flex-wrap: wrap; }
+.speaking-target .learning-text { flex-basis: 100%; }
+.speaking-target .audio-controls { margin: 0 auto 10px; }
+.speaking-meaning { margin-top: 18px; }
+.speaking-phrase .word-listening { text-align: start; }
 .pronunciation-tips { padding-left: 20px; color: var(--muted); line-height: 1.8; font-size: 16px; }
 .pronunciation-tips li + li { margin-top: 10px; }
 @media (max-width: 900px) { .speaking-grid { grid-template-columns: 1fr; } }
@@ -454,3 +480,76 @@ button:active:not(:disabled), .button:active { filter: brightness(.94); }
   .lesson-bottom { margin-left: -20px; margin-right: -20px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* Shared listening controls: phrase audio first, individual words on demand. */
+.listenable-text { min-width: 0; }
+.audio-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.audio-line .learning-text { min-width: 0; flex: 1; overflow-wrap: anywhere; margin: 0; }
+.audio-controls { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 8px; }
+.audio-button { position: relative; border: 1px solid #ccd7c6; border-radius: 9px; background: #fffefa; color: var(--green); min-width: 44px; min-height: 44px; padding: 9px; display: inline-flex; align-items: center; justify-content: center; }
+.audio-button:hover:not(:disabled), .listen-word:hover:not(:disabled) { background: #eaf0e4; border-color: #8ea582; }
+.audio-button .icon { width: 20px; height: 20px; }
+.audio-speed { position: absolute; top: 0; right: 2px; background: #fffefa; color: var(--green); font: 12px/1.2 "Segoe UI",sans-serif; padding: 1px; border-radius: 3px; }
+.word-listening { margin-top: 8px; }
+.word-listening summary { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 0; font-size: 14px; font-weight: 600; color: var(--green); cursor: pointer; list-style: none; }
+.word-listening summary::-webkit-details-marker { display: none; }
+.word-listening summary .icon { width: 18px; height: 18px; }
+.word-listening summary::after { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); margin: 0 4px 3px; }
+.word-listening[open] summary::after { transform: rotate(225deg); margin-top: 6px; }
+.word-listening summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+.word-listening-items { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0 12px; }
+.listen-word { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; min-width: 44px; padding: 9px 12px; border: 1px solid #ccd7c6; border-radius: 9px; background: #fffefa; color: var(--ink); font-size: 16px; overflow-wrap: anywhere; }
+.listen-word .icon { width: 18px; height: 18px; color: var(--green); }
+.hero-greeting { max-width: 310px; margin: 0 0 18px; }
+.hero-greeting .learning-text { font: 25px/1.4 Georgia,serif; }
+.course-greeting-audio { position: relative; z-index: 1; }
+.course-greeting-audio .audio-line { flex-wrap: wrap; justify-content: center; }
+.course-greeting-audio .learning-text { flex: 0 1 auto; font: 38px/1.4 Georgia,serif; text-align: center; }
+.course-greeting-audio .audio-button { background: #fffdf5; }
+.course-visual::after { pointer-events: none; }
+.course-body h2 { flex-wrap: wrap; }
+.course-body h2 .audio-button { margin-inline-start: auto; }
+.course-body h2 > span { display: inline; }
+.phrase-card .phrase-target { margin: 18px 0 12px; }
+.phrase-card .phrase-target h3 { margin: 0; font-size: 24px; }
+.phrase-meaning { margin-bottom: 16px; color: var(--muted); font-size: 16px; }
+.lesson-prompt { width: 100%; }
+.lesson-prompt .learning-text { font-size: 27px; line-height: 1.5; font-weight: 500; }
+.answer-option-card { min-width: 0; border: 1px solid var(--border); border-radius: 12px; padding: 8px; background: #fffefa; }
+.answer-option-row { display: flex; align-items: stretch; gap: 8px; }
+.answer-option-row .answer-option { flex: 1; min-width: 0; min-height: 60px; padding: 10px; }
+.answer-option-row .answer-option.selected { padding: 9px; }
+.answer-option b { overflow-wrap: anywhere; }
+.answer-option-row .audio-controls { flex-direction: column; gap: 8px; }
+.answer-option-card .word-listening { margin: 4px 4px 0; }
+.answer-option-card .word-listening summary { font-size: 13px; }
+.word-chip-control { display: inline-flex; gap: 8px; align-items: center; }
+.word-chip-control .word-chip { min-width: 44px; overflow-wrap: anywhere; }
+.word-chip-control .word-chip.used { color: var(--muted); opacity: .55; }
+.arranged-listening { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); margin: -12px 0 14px; }
+.typed-listening-text { padding: 12px 0; }
+.hint-text .learning-text { font-size: 20px; }
+.feedback-phrases { display: grid; gap: 12px; margin-top: 16px; }
+.feedback-target .learning-text { font-size: 19px; font-weight: 600; color: var(--ink); }
+.feedback-meaning .learning-text { font-size: 16px; }
+.lesson-bottom:has(.feedback-phrases) { align-items: start; flex-wrap: wrap; }
+.lesson-bottom:has(.feedback-phrases) > div { flex-basis: 100%; }
+.lesson-bottom:has(.feedback-phrases) > .button { margin-inline-start: auto; }
+@media (max-width: 760px) {
+  .hero-greeting { max-width: 290px; }
+  .answer-option-card { padding: 8px; }
+  .answer-option-row .audio-controls { flex-direction: row; }
+  .answer-options { grid-template-columns: 1fr; }
+  .lesson-prompt .learning-text { font-size: 24px; }
+}
+@media (max-width: 480px) {
+  .audio-line { flex-wrap: wrap; gap: 8px; }
+  .audio-line .learning-text { flex-basis: 100%; }
+  .hero-greeting .audio-line { flex-wrap: nowrap; }
+  .hero-greeting .learning-text { flex-basis: auto; }
+  .course-greeting-audio .learning-text { flex-basis: 100%; font-size: 34px; }
+  .answer-option-row { flex-wrap: wrap; }
+  .answer-option-row .answer-option { flex-basis: calc(100% - 60px); }
+  .answer-option-row .audio-controls { flex-direction: column; }
+  .phrase-card .audio-line .learning-text { flex-basis: auto; }
+}

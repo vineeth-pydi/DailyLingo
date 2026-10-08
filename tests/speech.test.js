@@ -47,8 +47,19 @@ async function setup(t, options = {}) {
   const keys = ['window', 'document', 'navigator', 'localStorage', 'MediaRecorder', 'SpeechSynthesisUtterance'];
   const originals = new Map(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
   const stored = new Map(Object.entries(options.storage ?? {}));
-  const document = Object.assign(new Events(), { hidden: false, activeElement: null });
-  const env = { document, stored, recorders: [], recognizers: [], streams: [], spoken: [], urls: [], revoked: [] };
+  const announcements = [];
+  const document = Object.assign(new Events(), {
+    hidden: false, activeElement: null,
+    createElement(tag) {
+      return {
+        tag, attributes: {}, textContent: '',
+        setAttribute(name, value) { this.attributes[name] = value; },
+        remove() { const index = announcements.indexOf(this); if (index >= 0) announcements.splice(index, 1); }
+      };
+    },
+    body: { append(element) { announcements.push(element); } }
+  });
+  const env = { document, announcements, stored, recorders: [], recognizers: [], streams: [], spoken: [], urls: [], revoked: [] };
   const createStream = () => {
     const track = { stops: 0, stop() { this.stops++; } };
     const stream = { track, getTracks: () => [track] };
@@ -102,7 +113,7 @@ async function setup(t, options = {}) {
   const window = {
     isSecureContext: options.secure !== false,
     MediaRecorder: options.noRecorder ? undefined : Recorder,
-    SpeechRecognition: Recognition,
+    SpeechRecognition: options.noRecognition ? undefined : Recognition,
     SpeechSynthesisUtterance: options.noUtterance ? undefined : Utterance,
     speechSynthesis: synthesis
   };
@@ -277,4 +288,186 @@ test('missing or failing speech playback reports guidance instead of throwing', 
   window.SpeechSynthesisUtterance = undefined; globalThis.SpeechSynthesisUtterance = undefined;
   assert.doesNotThrow(() => env.speech.speakPhrase(concepts[0], language, false, message => messages.push(message)));
   assert.match(messages[1], /unavailable in this browser/);
+});
+
+
+const emitWords = (recognizer, transcript) => recognizer.onresult({ resultIndex: 0, results: [[{ transcript }]] });
+const displayedWordStatuses = root => [...root.html.matchAll(/<li class="checked-word (\w+)"><div class="checked-word-heading"><strong[^>]*>([^<]+)<\/strong>/gu)]
+  .map(match => ({ text: match[2], status: match[1] }));
+
+test('finishing word check ignores repeated clicks and accepts the final words before end', async t => {
+  const env = await setup(t); env.mount();
+  env.root.change('speech-consent', true); env.root.click('transcribe');
+  const recognizer = env.recognizers[0], staleFinish = env.root.button('transcribe');
+  env.root.click('transcribe');
+  assert.equal(recognizer.stops, 1);
+  assert.equal(env.root.button('transcribe').disabled, true);
+  assert.equal(env.root.button('record').disabled, true);
+  assert.equal(env.root.button('next').disabled, true);
+  assert.match(env.root.status.textContent, /Finishing the word check/);
+  // A queued click carries the former enabled button, so the handler itself
+  // must guard repeated stop calls rather than relying only on disabled DOM.
+  env.root.emit('click', { target: { closest: () => staleFinish } });
+  env.root.emit('click', { target: { closest: () => staleFinish } });
+  assert.equal(recognizer.stops, 1);
+  emitWords(recognizer, 'Hola');
+  assert.match(env.root.html, /The recognized words match/);
+  recognizer.onend();
+  assert.equal(recognizer.aborts, 0);
+  assert.equal(env.root.button('retry').disabled, false);
+  assert.equal(env.root.button('record').disabled, false);
+  assert.equal(env.root.button('next').disabled, false);
+});
+
+test('word-check finish watchdog recovers when the provider never sends end and rejects its late events', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const env = await setup(t); env.mount();
+  env.root.change('speech-consent', true); env.root.click('transcribe');
+  const abandoned = env.recognizers[0];
+  env.root.click('transcribe');
+  t.mock.timers.tick(4999);
+  assert.equal(abandoned.aborts, 0);
+  assert.equal(env.root.button('transcribe').disabled, true);
+  t.mock.timers.tick(1);
+  assert.equal(abandoned.aborts, 1);
+  assert.match(env.root.status.textContent, /speech service did not finish/);
+  assert.equal(env.root.button('transcribe').disabled, false);
+  assert.equal(env.root.button('record').disabled, false);
+  assert.equal(env.root.button('next').disabled, false);
+  env.root.click('transcribe');
+  const current = env.recognizers[1], beforeLateEvents = env.root.html;
+  emitWords(abandoned, 'incorrect stale transcript');
+  abandoned.onerror({ error: 'network' }); abandoned.onend();
+  assert.equal(env.root.html, beforeLateEvents);
+  assert.equal(current.aborts, 0);
+  assert.equal(current.stops, 0);
+  emitWords(current, 'Hola'); current.onend();
+  assert.match(env.root.html, /The recognized words match/);
+  assert.doesNotMatch(env.root.html, /incorrect stale transcript/);
+  // The obsolete 15-second listening timer cannot stop the replacement.
+  t.mock.timers.tick(20000);
+  assert.equal(abandoned.stops, 1);
+  assert.equal(current.stops, 0);
+});
+
+test('automatic word-check limit finishes then bounds the final-result wait', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const env = await setup(t); env.mount();
+  env.root.change('speech-consent', true); env.root.click('transcribe');
+  const recognizer = env.recognizers[0];
+  t.mock.timers.tick(14999);
+  assert.equal(recognizer.stops, 0);
+  t.mock.timers.tick(1);
+  assert.equal(recognizer.stops, 1);
+  assert.equal(env.root.button('transcribe').disabled, true);
+  t.mock.timers.tick(4999);
+  assert.equal(recognizer.aborts, 0);
+  t.mock.timers.tick(1);
+  assert.equal(recognizer.aborts, 1);
+  assert.equal(env.root.button('next').disabled, false);
+  assert.match(env.root.status.textContent, /speech service did not finish/);
+});
+
+test('speech errors immediately restore retry without end and cannot overwrite a newer check', async t => {
+  const env = await setup(t); env.mount();
+  env.root.change('speech-consent', true); env.root.click('transcribe');
+  const abandoned = env.recognizers[0];
+  abandoned.onerror({ error: 'network' });
+  // Deliberately omit onend: an error alone must free the studio controls.
+  assert.equal(abandoned.aborts, 1);
+  assert.equal(env.root.button('transcribe').disabled, false);
+  assert.equal(env.root.button('record').disabled, false);
+  assert.equal(env.root.button('next').disabled, false);
+  assert.match(env.root.status.textContent, /could not connect/);
+  env.root.click('transcribe');
+  const current = env.recognizers[1], beforeLateEvents = env.root.html;
+  abandoned.onerror({ error: 'not-allowed' });
+  emitWords(abandoned, 'abandoned result'); abandoned.onend();
+  assert.equal(env.root.html, beforeLateEvents);
+  assert.equal(current.aborts, 0);
+  emitWords(current, 'Hola'); current.onend();
+  assert.match(env.root.html, /The recognized words match/);
+  assert.doesNotMatch(env.root.html, /abandoned result/);
+});
+
+test('retry removes old feedback and returns new ordered word feedback with targeted playback', async t => {
+  const env = await setup(t); env.mount();
+  env.root.change('speaking-unit', false, 'people'); // Me llamo Sam
+  env.root.change('speech-consent', true); env.root.click('transcribe');
+  const first = env.recognizers[0];
+  emitWords(first, 'Me llamo Tom'); first.onend();
+  assert.deepEqual(displayedWordStatuses(env.root), [
+    { text: 'Me', status: 'matched' }, { text: 'llamo', status: 'matched' }, { text: 'Sam', status: 'retry' }
+  ]);
+  assert.match(env.root.html, /Heard “Tom”/);
+  env.root.click('retry');
+  assert.equal(env.recognizers[1].starts, 1);
+  assert.doesNotMatch(env.root.html, /word-check-results|Heard “Tom”/);
+  assert.match(env.root.html, /Your word comparison will appear here/);
+  const second = env.recognizers[1];
+  emitWords(first, 'old incorrect result'); first.onend();
+  assert.doesNotMatch(env.root.html, /old incorrect result/);
+  emitWords(second, 'Me Sam'); second.onend();
+  assert.deepEqual(displayedWordStatuses(env.root), [
+    { text: 'Me', status: 'matched' }, { text: 'llamo', status: 'missing' }, { text: 'Sam', status: 'matched' }
+  ]);
+  const missingWord = env.root.html.match(/<li class="checked-word missing">[\s\S]*?<\/li>/u)?.[0];
+  assert.match(missingWord, /data-audio-text="llamo"/);
+  assert.match(missingWord, /data-audio-language="es"/);
+  assert.match(missingWord, /data-audio-slow="true"/);
+  assert.match(missingWord, /This word was not recognized/);
+  assert.equal(env.root.button('retry').disabled, false);
+  assert.doesNotMatch(env.root.html, /Heard “Tom”|old incorrect result/);
+});
+
+test('leaving the tab aborts word checking, ignores late results and requires an explicit restart', async t => {
+  const env = await setup(t); env.mount();
+  env.root.change('speech-consent', true); env.root.click('transcribe');
+  const abandoned = env.recognizers[0];
+  env.document.hidden = true; env.document.emit('visibilitychange');
+  assert.equal(abandoned.aborts, 1);
+  assert.match(env.root.status.textContent, /Microphone stopped when you left the tab/);
+  const afterHidden = env.root.html;
+  emitWords(abandoned, 'Hola'); abandoned.onerror({ error: 'no-speech' }); abandoned.onend();
+  assert.equal(env.root.html, afterHidden);
+  assert.doesNotMatch(env.root.html, /word-check-results/);
+  env.document.hidden = false; env.document.emit('visibilitychange');
+  assert.equal(env.recognizers.length, 1);
+  assert.equal(env.root.button('transcribe').disabled, false);
+  env.root.click('transcribe');
+  assert.equal(env.recognizers.length, 2);
+  assert.equal(env.recognizers[1].starts, 1);
+});
+
+test('a browser without recognition offers working local recording without an unavailable speech call', async t => {
+  const env = await setup(t, { noRecognition: true }); env.mount();
+  assert.equal(env.root.button('transcribe').disabled, true);
+  assert.match(env.root.html, /Browser word check is unavailable here/);
+  assert.match(env.root.html, /compare by ear/);
+  env.root.change('speech-consent', true); env.root.click('transcribe');
+  assert.equal(env.recognizers.length, 0);
+  assert.equal(env.root.button('record').disabled, false);
+  env.root.click('record'); await flush();
+  assert.equal(env.recorders[0].state, 'recording');
+  env.root.click('record'); env.finish(env.recorders[0]);
+  assert.match(env.root.html, /Your recording/);
+  assert.equal(env.urls.length, 1);
+});
+
+test('speaking announcements survive control rerenders and are removed on disposal', async t => {
+  const env = await setup(t); env.mount();
+  assert.equal(env.announcements.length, 1);
+  const announcement = env.announcements[0];
+  assert.equal(announcement.attributes.role, 'status');
+  assert.equal(announcement.attributes['aria-live'], 'polite');
+  assert.equal(announcement.attributes['aria-atomic'], 'true');
+  assert.match(announcement.textContent, /Start by listening/);
+  env.root.change('speech-consent', true); env.root.click('transcribe');
+  assert.equal(env.announcements[0], announcement);
+  assert.match(announcement.textContent, /Listening/);
+  env.recognizers[0].onerror({ error: 'no-speech' });
+  assert.equal(env.announcements[0], announcement);
+  assert.match(announcement.textContent, /No speech was recognized/);
+  env.speech.disposeSpeechPractice();
+  assert.equal(env.announcements.length, 0);
 });

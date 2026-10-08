@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 — 2026-10-08
+
+- Guided Listen → Speak and check → Review practice, with explicit browser speech-provider opt-in.
+- Word-by-word comparison highlights recognized, missing, and different words; each word offers slow replay and a practice prompt. Extra recognized words are shown separately.
+- Speaker controls for phrases, meanings, answer options, arranged words, typed answers, hints, and feedback throughout the learning views.
+- Script-aware word listening and comparison across all five courses, including Mandarin without spaces.
+- Local recording remains available for comparison by ear. Word checks describe recognition results without grading accent, individual sounds, or Mandarin tones.
+- Speech capture recovers from provider errors and unfinished checks; navigation and backgrounding stop capture and playback. Screen-reader status announcements persist through studio updates.
+- New audio and feedback modules are included in the offline app cache; learning progress and backup formats remain compatible.
+
 ## 0.3.0 — 2026-10-08
 
 - Renamed the app and repository to DailyLingo with updated metadata, install name, source links, and documentation.

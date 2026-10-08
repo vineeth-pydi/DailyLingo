@@ -4,7 +4,7 @@
 
 DailyLingo is a free, open source, installable language learning website. Practice everyday phrases in **English, Spanish, Mandarin Chinese, Hindi, and Modern Standard Arabic**. No account, subscription, or API key is required.
 
-**Status: v0.3.0 community alpha.** These are original starter courses awaiting independent native-speaker review, not complete A1 curricula or certified assessments. Browser audio is synthesized when a compatible voice is available.
+**Status: v0.4.0 community alpha.** These are original starter courses awaiting independent native-speaker review, not complete A1 curricula or certified assessments. Browser audio is synthesized when a compatible voice is available.
 
 **[Open the app](https://vineeth-pydi.github.io/DailyLingo/) · [Source and contributions](https://github.com/vineeth-pydi/DailyLingo)**
 
@@ -13,9 +13,11 @@ DailyLingo is a free, open source, installable language learning website. Practi
 - Five courses, each with six lessons and 36 everyday phrases (180 phrase forms total).
 - A 12-activity lesson flow: six recognition questions, three word arrangements, and three typed recalls. Every phrase receives one production question.
 - Script-aware checking: meaningful Hindi vowel signs and Spanish accents are preserved; optional Arabic vowel signs and punctuation are normalized.
-- Optional Pinyin and Hindi/Arabic reading aids, plus a Speaking studio with normal/slow playback, voice selection, and an on-device-only voice filter.
-- Local microphone recording (up to 30 seconds), listening back, downloading, and deleting.
-- Optional browser transcription with explicit opt-in; recognized-word matching is not a pronunciation score.
+- Shared speaker controls beside learning text on Home, Languages, Review, lessons, and Speaking; normal/slow playback and expandable word-by-word listening help with phrases and individual words.
+- Optional Pinyin and Hindi/Arabic reading aids, plus voice selection and an on-device-only voice filter in Speaking. Compatible voice availability depends on the browser, device, and installed voice packs.
+- Guided Speaking practice: listen to the example, choose **Speak and check**, then review each expected word and replay words to try again. The browser transcript shows matched, different, or missing words, plus any extra words heard.
+- Browser word checking starts only after an explicit opt-in. It compares recognized words, without grading individual sounds, accent, rhythm, or Mandarin tones; recognition errors and background noise can affect feedback.
+- A secondary **Record and compare by ear** option captures up to 30 seconds locally, with listening back, downloading, and deleting.
 - Phrase reviews scheduled at 1, 3, 7, 14, and 30 days; missed/hinted items return after 10 minutes. Successful early practice preserves the scheduled review date.
 - A clear daily practice plan, draft-first lesson resumption, daily goals, and activity history.
 - A searchable phrase collection with target-language, meaning, and reading-aid search, plus a due-review filter.
@@ -66,7 +68,9 @@ src/core.js              Scheduling, answer checking, state validation
 src/drafts.js            Safe lesson-draft restoration
 src/app.js               Views, interaction, browser persistence, audio
 src/config.js            Public repository link
-src/speech.js            Speaking studio, voices, local recording, optional transcription
+src/audio-ui.js          Shared phrase and word speaker controls, script-aware segmentation
+src/speech.js            Guided Speaking, voices, browser word check, local recording
+src/speech-feedback.js   Ordered transcript comparison and per-word retry feedback
 scripts/build.mjs        Static packaging and dependency-free icon generation
 scripts/serve.mjs        Local HTTP preview
 tests/                   Learning logic, content, and static build tests
@@ -77,9 +81,9 @@ tests/                   Learning logic, content, and static build tests
 
 DailyLingo keeps the original FreeLingo storage keys and backup format so the rename preserves existing progress on the same browser and origin. Progress lives in this browser's local storage. Clearing browser data or using another device does not automatically preserve it; export a backup. Backups contain practice history, preferences, and phrase IDs, so share them intentionally.
 
-There are no analytics, trackers, app-managed accounts, or server-side learner records. GitHub Pages may receive normal hosting request data under its own policies. Optional audio uses the browser/OS speech service; processing location and available voices depend on the platform. Speaking requests microphone access only when you choose Record my voice or Check spoken words. Local recordings remain in tab memory; DailyLingo does not upload them. Navigation, hiding the tab, or time limits stop microphone capture. Optional browser transcription may send audio to the browser provider and may need internet access; it starts only after an explicit opt-in.
+There are no analytics, trackers, app-managed accounts, or server-side learner records. GitHub Pages may receive normal hosting request data under its own policies. Optional audio uses the browser/OS speech service; processing location and available voices depend on the platform. Speaking requests microphone access only when you choose **Record my voice** or **Speak and check**. Local recordings remain in tab memory; DailyLingo does not upload them. Changing phrases or leaving Speaking clears the recording. Navigation, hiding the tab, or time limits stop microphone capture. **Speak and check** uses optional browser transcription, which may send audio to the browser provider and may need internet access; it starts only after you enable **Allow browser word check** and choose the button.
 
-Voice preferences are stored separately from progress backups. Transcription consent and recordings are never stored in a backup. Speech availability depends on browser, device, voice packs, and language. The word check does not measure accent, phonemes, or Mandarin tone accuracy. See [SPEECH_RESOURCES.md](SPEECH_RESOURCES.md) for researched datasets, licenses, and the subscription-free speech roadmap.
+Voice preferences are stored separately from progress backups. Transcription consent and recordings are never stored in a backup. Speech availability depends on browser, device, voice packs, and language. The word check does not measure accent, phonemes, rhythm, or Mandarin tone accuracy. A recognized-word match cannot confirm correct pronunciation, and a mismatch can reflect a recognition error. Listening and local recording remain available when browser word checking is unsupported, subject to the device's voice and microphone capabilities. See [SPEECH_RESOURCES.md](SPEECH_RESOURCES.md) for researched datasets, licenses, and the subscription-free speech roadmap.
 
 Phrase examples sometimes use a specific gender, register, or regional word. Notes highlight some cases; approved variants and native reference recordings are future work. Arabic is MSA only in this alpha. Use one active learning tab to avoid conflicting progress edits. Offline caches may be evicted by the browser; reload online to cache again. Cache cleanup is scoped to this app; caches for an older `/FreeLingo/` installation are preserved. Open the new `/DailyLingo/` address online once to cache the renamed app. Existing home-screen shortcuts may still point at the old address; install the renamed app from its new address.
 

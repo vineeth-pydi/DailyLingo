@@ -1,6 +1,6 @@
 # DailyLingo product update — 2026-10-08
 
-v0.3.0 renames FreeLingo to DailyLingo and improves the daily practice flow, phrase discovery, readability, lesson recovery, speech lifecycle, and offline packaging. Existing progress and backups remain compatible. The subscription-free, dependency-free static architecture and five starter courses remain the foundation.
+v0.4.0 adds shared phrase/word listening controls and a guided browser word check. v0.3.0 renames FreeLingo to DailyLingo and improves the daily practice flow, phrase discovery, readability, lesson recovery, speech lifecycle, and offline packaging. Existing progress and backups remain compatible. The subscription-free, dependency-free static architecture and five starter courses remain the foundation.
 
 Current source target: [vineeth-pydi/DailyLingo](https://github.com/vineeth-pydi/DailyLingo). Current Pages target: [DailyLingo](https://vineeth-pydi.github.io/DailyLingo/). See [LAUNCH_STATUS.md](LAUNCH_STATUS.md) for release validation and publication evidence. The older launch notes below are historical, and curriculum roadmap version labels describe aspirations rather than delivered release scope.
 

@@ -2,7 +2,21 @@
 
 Updated: 2026-10-08 (America/Chicago).
 
-## DailyLingo update — v0.3.0
+## Speaking and listening update — v0.4.0
+
+Release scope: shared phrase, slow, and word-by-word speaker controls across learning views; a guided Listen → Speak and check → Review flow; ordered transcript comparison with per-word replay and practice prompts; explicit browser speech-provider opt-in; and bounded capture/error recovery. Local recording remains a separate way to compare by ear. The selected browser word check does not assess phonemes, accent, rhythm, or Mandarin tones.
+
+### Local validation
+
+- Syntax checks and all 63 automated tests passed. New coverage includes all 180 phrase forms, all 20 prompt/target-language pairs, script-aware word segmentation, ordered missing/extra/repeated words, audio clicks without answer changes, bounded speech completion, stale events, opt-in, background cleanup, unsupported browsers, and persistent announcements.
+- Edge browser regression completed all 12 lesson activities in each of the five languages, checked 35 route/viewport combinations, and verified saved progress, draft resumption, phrase filtering, backup round trips, and offline lesson start with no page errors.
+- Speaker routing was exercised through 2,050 real UI clicks and 230 layout checks, including every language pair at desktop and 375px. Buttons route the displayed text/language once, preserve answers, do not reveal recall targets, and have at least 44px touch targets. Screenshots were inspected.
+- Speaking browser checks passed for all five languages at desktop and 375px: 61 simulated recognition attempts, 44 targeted word replays, and 35 layout checks. Covered opt-in, locale, exact/different/missing/extra words, retry, provider errors, permission withdrawal, navigation/background cancellation, stale results, a real five-second completion timeout, unsupported browsers, and persistent announcements. No page errors or horizontal overflow.
+- Speech API automation uses deterministic browser doubles; it does not verify audible installed voices, physical microphone input, or the browser provider's real recognition accuracy. Those capabilities vary by device and service. Native course review remains pending.
+
+Publication will be recorded after the exact release commit deploys and the live app is checked.
+
+## Historical DailyLingo update — v0.3.0
 
 Release scope: DailyLingo branding; daily next-step guidance and draft-first lesson resumption; source-language choice on Home; phrase search and a due-review filter; readable responsive interface improvements; validated lesson recovery; speaking lifecycle fixes; clean static packaging; and app-scoped offline caches. The five original starter courses remain community alpha content awaiting independent language review.
 

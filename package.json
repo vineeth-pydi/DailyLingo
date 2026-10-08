@@ -1,6 +1,6 @@
 {
   "name": "dailylingo",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "description": "Free, open source daily language practice in English, Spanish, Mandarin, Hindi, and Arabic.",
@@ -12,6 +12,6 @@
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "test": "node --test",
-    "check": "node --check src/app.js && node --check src/core.js && node --check src/drafts.js && node --check src/content.js && node --check src/speech.js && node --check public/sw.js"
+    "check": "node --check src/app.js && node --check src/core.js && node --check src/drafts.js && node --check src/content.js && node --check src/speech.js && node --check src/audio-ui.js && node --check src/speech-feedback.js && node --check public/sw.js"
   }
 }
