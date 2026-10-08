@@ -1,0 +1,21 @@
+name: Bug report
+description: Report an app or accessibility problem
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Explain expected and actual behavior. Do not include private learner data.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Firefox on Android, Safari on iPhone, etc.
