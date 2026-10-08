@@ -553,3 +553,145 @@ button:active:not(:disabled), .button:active { filter: brightness(.94); }
   .answer-option-row .audio-controls { flex-direction: column; }
   .phrase-card .audio-line .learning-text { flex-basis: auto; }
 }
+
+/* The sun control changes the palette, while every layout stays familiar. */
+:root {
+  --surface: #fffefa;
+  --surface-raised: #fff;
+  --surface-soft: #eef1e8;
+  --control: #fafbf5;
+  --control-hover: #edf0e5;
+  --border-strong: #cbd5c4;
+  --primary-ink: #fff;
+  color-scheme: light;
+}
+.theme-toggle { flex-shrink: 0; }
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #17211d;
+  --white: #1b2722;
+  --ink: #edf2e9;
+  --muted: #b9c5b7;
+  --border: #3d5045;
+  --accent: #e58e71;
+  --accent-dark: #f2a38a;
+  --sage: #24352d;
+  --green: #afd5b7;
+  --focus: #f3be85;
+  --surface: #1b2722;
+  --surface-raised: #22312a;
+  --surface-soft: #24352d;
+  --control: #202e26;
+  --control-hover: #304338;
+  --border-strong: #6b846f;
+  --primary-ink: #211610;
+  --positive-surface: #243b2d;
+  --positive-ink: #b9dcb2;
+  --positive-border: #6b9770;
+  --warning-surface: #3b2e1f;
+  --warning-ink: #f4c684;
+  --warning-border: #9a7748;
+  color: var(--ink);
+  background: var(--paper);
+}
+html[data-theme="dark"] body { background: var(--paper); }
+html[data-theme="dark"] ::selection { color: var(--ink); background: #4a614f; }
+html[data-theme="dark"] :is(button, a, input, select, summary):focus-visible,
+html[data-theme="dark"] .import-label:focus-within { outline-color: var(--focus); }
+html[data-theme="dark"] .sidebar { background: #16221c; }
+html[data-theme="dark"] .nav-link:hover { color: var(--ink); background: var(--control-hover); }
+html[data-theme="dark"] .nav-link.active { color: var(--positive-ink); background: var(--positive-surface); }
+html[data-theme="dark"] .nav-count { color: var(--positive-ink); background: #354d3b; }
+html[data-theme="dark"] .open-note { background: linear-gradient(135deg, var(--surface-soft), var(--surface)); border-color: var(--border); }
+html[data-theme="dark"] .avatar { color: var(--ink); background: #4a3c2d; }
+html[data-theme="dark"] .profile-dot { background: var(--positive-ink); }
+html[data-theme="dark"] .hero-card { background: #26332b; border-color: #455547; }
+html[data-theme="dark"] .pill { background: var(--surface-raised); color: var(--muted); }
+html[data-theme="dark"] .speech-card { border-color: #64775f; box-shadow: 0 13px 24px #0004; }
+html[data-theme="dark"] .speech-back { background: #30442f; color: #d1ddc5; }
+html[data-theme="dark"] .speech-front { background: #3f4433; color: #edf2e0; }
+html[data-theme="dark"] .art-orbit { border-color: #83957440; }
+html[data-theme="dark"] .art-dot { background: #dcb779; }
+html[data-theme="dark"] .primary { color: var(--primary-ink); box-shadow: 0 3px 0 #0003; }
+html[data-theme="dark"] .secondary { color: var(--ink); background: var(--surface-raised); border-color: var(--border-strong); }
+html[data-theme="dark"] .secondary:hover:not(:disabled) { background: var(--control-hover); }
+html[data-theme="dark"] .text-link { color: var(--green); }
+html[data-theme="dark"] .text-link:hover { color: #d4e7d4; }
+html[data-theme="dark"] .icon-button:hover { background: var(--control-hover); }
+html[data-theme="dark"] .theme-toggle { color: var(--warning-ink); }
+html[data-theme="dark"] .theme-toggle[aria-pressed="true"] { background: var(--surface-soft); }
+html[data-theme="dark"] :is(.goal-card, .mini-progress, .course-card, .phrase-card, .stat-card, .activity-card, .language-progress, .settings-card) { background: var(--surface); border-color: var(--border); }
+html[data-theme="dark"] .lesson-row { color: var(--ink); background: var(--surface); border-color: var(--border); }
+html[data-theme="dark"] .lesson-row:hover { background: var(--surface-raised); border-color: var(--border-strong); }
+html[data-theme="dark"] .lesson-row.next { background: #243629; border-color: #5e765f; }
+html[data-theme="dark"] .lesson-icon { color: var(--muted); background: #344332; }
+html[data-theme="dark"] .lesson-row.next .lesson-status { color: var(--positive-ink); background: #354d3b; }
+html[data-theme="dark"] .goal-ring { background: conic-gradient(#9dc997 calc(var(--progress) * 1%), #3d4d41 0); }
+html[data-theme="dark"] .goal-ring > div { background: var(--surface); }
+html[data-theme="dark"] .review-card { background: #312d24; border-color: #544b3b; }
+html[data-theme="dark"] .soft-icon { color: var(--warning-ink); background: #4b3c28; }
+html[data-theme="dark"] .review-card .button { background: var(--surface-raised); color: var(--ink); border-color: var(--border-strong); }
+html[data-theme="dark"] .review-card .button:hover { background: var(--control-hover); }
+html[data-theme="dark"] .progress-track { background: #3d4d41; }
+html[data-theme="dark"] .progress-track span { background: #96c8a1; }
+html[data-theme="dark"] .world-strip { background: var(--surface-soft); border-color: var(--border); }
+/* Course panels retain their five pastels and the corresponding dark labels. */
+html[data-theme="dark"] .language-badge { color: color-mix(in srgb, var(--badge-ink) 80%, #132118); }
+html[data-theme="dark"] .course-visual { background: var(--course-color); color: var(--course-ink); }
+html[data-theme="dark"] .contribute-card { background: var(--surface-soft); border-color: var(--border-strong); }
+html[data-theme="dark"] .info-note { background: #2f3329; }
+html[data-theme="dark"] .review-banner { background: var(--surface-soft); border-color: var(--border); }
+html[data-theme="dark"] .large-soft-icon { color: var(--positive-ink); background: #354b36; }
+html[data-theme="dark"] .phrase-card .pill { background: var(--surface-soft); }
+html[data-theme="dark"] .phrase-card .due-pill { color: var(--warning-ink); background: var(--warning-surface); }
+html[data-theme="dark"] .empty-state { border-color: var(--border-strong); }
+html[data-theme="dark"] .bar-space { border-color: var(--border); }
+html[data-theme="dark"] .chart-bar { background: #9cc6a2; }
+html[data-theme="dark"] .chart-day.today .chart-bar { background: #e9a483; }
+html[data-theme="dark"] .language-progress-row { border-color: var(--border); }
+html[data-theme="dark"] :is(.settings-card select, .practice-setup select, .collection-tools select, .collection-tools input, .typed-answer) { color: var(--ink); background: var(--control); border-color: var(--border-strong); }
+html[data-theme="dark"] :is(select, input)::placeholder { color: #aabaaa; opacity: 1; }
+html[data-theme="dark"] select option { color: var(--ink); background: var(--surface); }
+html[data-theme="dark"] .toggle-row input { accent-color: #a4ceaa; }
+html[data-theme="dark"] .danger-button { color: #ffb39b; }
+html[data-theme="dark"] dialog { color: var(--ink); background: var(--surface); border-color: var(--border-strong); box-shadow: 0 24px 70px #0007; }
+html[data-theme="dark"] dialog::backdrop { background: #070c09cc; }
+html[data-theme="dark"] .lesson-header { border-color: var(--border); }
+html[data-theme="dark"] .lesson-progress { background: #3d4d41; }
+html[data-theme="dark"] .lesson-progress span { background: #a7cea0; }
+html[data-theme="dark"] .prompt-box { background: var(--surface-soft); border-color: var(--border); }
+html[data-theme="dark"] .answer-option-card { background: var(--surface); border-color: var(--border); }
+html[data-theme="dark"] .answer-option { color: var(--ink); background: var(--control); border-color: var(--border-strong); }
+html[data-theme="dark"] .answer-option > span { color: var(--muted); border-color: var(--border-strong); }
+html[data-theme="dark"] .answer-option.selected { color: var(--ink); background: var(--positive-surface); border-color: var(--positive-border); }
+html[data-theme="dark"] .build-answer { border-color: var(--border-strong); }
+html[data-theme="dark"] .word-chip { color: var(--ink); background: var(--control); border-color: var(--border-strong); box-shadow: 0 3px 0 #0003; }
+html[data-theme="dark"] .word-chip.used { color: var(--muted); background: var(--surface-soft); border-color: var(--border); box-shadow: none; }
+html[data-theme="dark"] .hint-text { border-color: var(--border-strong); }
+html[data-theme="dark"] .lesson-bottom { background: var(--surface-soft); border-color: var(--border); }
+html[data-theme="dark"] .lesson-bottom.correct { background: var(--positive-surface); }
+html[data-theme="dark"] .lesson-bottom strong { color: var(--positive-ink); }
+html[data-theme="dark"] .lesson-bottom.incorrect { background: var(--warning-surface); }
+html[data-theme="dark"] .lesson-bottom.incorrect strong { color: var(--warning-ink); }
+html[data-theme="dark"] .summary-illustration { background: var(--positive-surface); color: var(--positive-ink); }
+html[data-theme="dark"] .summary-note { background: var(--surface-soft); }
+html[data-theme="dark"] .practice-setup { background: var(--surface); border-color: var(--border); border-left-color: var(--green); }
+html[data-theme="dark"] .speaking-phrase { background: var(--surface-soft); }
+html[data-theme="dark"] .speech-status { color: var(--positive-ink) !important; background: var(--positive-surface); }
+html[data-theme="dark"] .speech-steps li > span { color: var(--positive-ink); background: var(--positive-surface); }
+html[data-theme="dark"] .word-check-placeholder { background: var(--surface-soft); }
+html[data-theme="dark"] .checked-word { background: var(--control); }
+html[data-theme="dark"] :is(.checked-word.retry, .checked-word.missing) { background: var(--warning-surface); border-color: var(--warning-border); }
+html[data-theme="dark"] .word-check-state { color: var(--positive-ink); }
+html[data-theme="dark"] :is(.retry, .missing) .word-check-state { color: var(--warning-ink); }
+html[data-theme="dark"] .self-recording > summary { color: var(--green); }
+html[data-theme="dark"] :is(.audio-button, .listen-word) { color: var(--green); background: var(--surface-raised); border-color: var(--border-strong); }
+html[data-theme="dark"] .listen-word > span { color: var(--ink); }
+html[data-theme="dark"] :is(.audio-button, .listen-word):hover:not(:disabled) { color: var(--green); background: var(--control-hover); border-color: #a2baa6; }
+html[data-theme="dark"] .audio-speed { color: var(--green); background: var(--surface-raised); }
+html[data-theme="dark"] .skip-link { color: var(--ink); background: var(--surface-raised); }
+html[data-theme="dark"] #toast { color: var(--ink); background: #2b4433; box-shadow: 0 8px 35px #0005; border: 1px solid #68866c; }
+@media (max-width: 760px) {
+  html[data-theme="dark"] .sidebar nav { background: #16221c; border-color: var(--border); box-shadow: 0 -3px 20px #0004; }
+}

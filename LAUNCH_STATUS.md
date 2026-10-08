@@ -2,6 +2,14 @@
 
 Updated: 2026-10-08 (America/Chicago).
 
+## Theme update — v0.4.1
+
+Settings now uses a gear in the sidebar and header. A separate sun button switches light/dark modes. The first visit follows the system theme; an explicit choice is stored separately from learning progress and survives reloads, navigation, and offline practice. Theme changes update the palette without restarting active speaking or lesson sessions.
+
+Local validation: all 63 existing automated tests and syntax checks passed. Edge browser checks passed 137 layout checks and 100 lesson states across light/dark modes, desktop/mobile, all seven screens, and all five writing systems. Verified keyboard control/focus, 320px header targets, saved/system preferences, active word-check preservation, real offline reloads, and storage-denied recovery. Desktop and mobile screenshots were inspected.
+
+Publication verification will be recorded after deployment.
+
 ## Speaking and listening update — v0.4.0
 
 Release scope: shared phrase, slow, and word-by-word speaker controls across learning views; a guided Listen → Speak and check → Review flow; ordered transcript comparison with per-word replay and practice prompts; explicit browser speech-provider opt-in; and bounded capture/error recovery. Local recording remains a separate way to compare by ear. The selected browser word check does not assess phonemes, accent, rhythm, or Mandarin tones.

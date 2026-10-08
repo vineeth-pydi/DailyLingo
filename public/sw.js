@@ -1,7 +1,7 @@
 const RELEASE = 'dailylingo-v1';
 // CacheStorage is shared by every app on an origin; isolate each Pages scope.
 const CACHE = `${RELEASE}:${self.registration.scope}`;
-const ASSETS = ['./', './index.html', './styles.css', './src/app.js', './src/core.js', './src/drafts.js', './src/content.js', './src/config.js', './src/speech.js', './src/audio-ui.js', './src/speech-feedback.js', './icon.svg', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
+const ASSETS = ['./', './index.html', './styles.css', './src/app.js', './src/core.js', './src/drafts.js', './src/content.js', './src/config.js', './src/speech.js', './src/audio-ui.js', './src/speech-feedback.js', './src/theme.js', './icon.svg', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 const ASSET_URLS = new Set(ASSETS.map(path => new URL(path, self.registration.scope).href));
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));

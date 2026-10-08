@@ -14,7 +14,7 @@ const paths = {
   book: '<path d="M3 4h6c2 0 3 1 3 3v14c0-2-1-3-3-3H3zM21 4h-6c-2 0-3 1-3 3v14c0-2 1-3 3-3h6z"/>',
   repeat: '<path d="M20 7H7a4 4 0 0 0-4 4M16 3l4 4-4 4M4 17h13a4 4 0 0 0 4-4M8 13l-4 4 4 4"/>',
   chart: '<path d="M4 20V12M12 20V4M20 20V8"/>',
-  settings: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="m9 3-.5 2.3-2 1.2-2.2-.7-2 3.4L4 10.8v2.4l-1.7 1.6 2 3.4 2.2-.7 2 1.2L9 21h6l.5-2.3 2-1.2 2.2.7 2-3.4-1.7-1.6v-2.4l1.7-1.6-2-3.4-2.2.7-2-1.2L15 3z"/>',
   arrow: '<path d="M4 12h15m-6-6 6 6-6 6"/>',
   chevron: '<path d="m9 5 7 7-7 7"/>',
   check: '<path d="m4 12 5 5L20 6"/>',
@@ -73,6 +73,15 @@ const completedCount = language => units.filter(unit => state.completed[`${langu
 const currentLanguage = () => findLanguage(state.target);
 const nextUnit = () => units.find(unit => state.drafts[`${state.target}:${state.source}:${unit.id}`]) ?? units.find(unit => !state.completed[`${state.target}:${unit.id}`]) ?? units[0];
 const languageBadge = (language, cls = '') => `<span class="language-badge ${cls}" style="--badge:${language.color};--badge-ink:${language.ink}" lang="${language.id}" dir="${language.direction}">${language.id === 'zh' ? '文' : language.id === 'hi' ? 'अ' : language.id === 'ar' ? 'ع' : language.short}</span>`;
+const darkTheme = () => window.dailyLingoTheme?.current === 'dark';
+const themeLabel = () => `Switch to ${darkTheme() ? 'light' : 'dark'} mode`;
+function updateThemeButton() {
+  const button = document.querySelector('[data-action="toggle-theme"]');
+  if (!button) return;
+  button.setAttribute('aria-pressed', String(darkTheme()));
+  button.setAttribute('aria-label', themeLabel());
+  button.setAttribute('title', themeLabel());
+}
 
 function render() {
   disposeSpeechPractice();
@@ -87,7 +96,7 @@ function render() {
       <nav aria-label="Main navigation">${[['home', 'home', 'Learn'], ['courses', 'globe', 'Languages'], ['speaking', 'speaker', 'Speaking'], ['review', 'repeat', 'Review'], ['progress', 'chart', 'Progress']].map(([id, glyph, label]) => `<a href="#${id}" ${view === id ? 'aria-current="page"' : ''} class="nav-link ${view === id ? 'active' : ''}">${icon(glyph)}<span>${label}</span>${id === 'review' && due ? `<span class="nav-count">${due}</span>` : ''}</a>`).join('')}</nav>
       <div class="sidebar-bottom"><div class="open-note">${icon('leaf')}<strong>Knowledge belongs<br>to everyone.</strong><p>Free to learn.<br>Open to build together.</p><a href="#about">Meet the project ${icon('arrow')}</a></div><a href="#settings" class="nav-link ${view === 'settings' ? 'active' : ''}" ${view === 'settings' ? 'aria-current="page"' : ''}>${icon('settings')}<span>Settings</span></a><div class="profile"><span class="avatar">Y</span><div><strong>Your learning space</strong><small>Saved on this device</small></div><span class="profile-dot" title="Device-local progress"></span></div></div>
     </aside>
-    <div class="workspace"><header class="topbar"><span>${escape(titles[view])}</span><div class="header-actions"><span class="streak-chip">${icon('fire')} ${streak(state)} <span>day${streak(state) === 1 ? '' : 's'}</span></span><label class="language-select-label">${languageBadge(language, 'tiny')}<select id="target-header" aria-label="Learning language">${languages.map(l => `<option value="${l.id}" ${l.id === state.target ? 'selected' : ''}>${l.name}</option>`).join('')}</select></label><a class="icon-button header-settings" href="#settings" aria-label="Practice settings">${icon('settings')}</a></div></header>
+    <div class="workspace"><header class="topbar"><span>${escape(titles[view])}</span><div class="header-actions"><span class="streak-chip">${icon('fire')} ${streak(state)} <span>day${streak(state) === 1 ? '' : 's'}</span></span><label class="language-select-label">${languageBadge(language, 'tiny')}<select id="target-header" aria-label="Learning language">${languages.map(l => `<option value="${l.id}" ${l.id === state.target ? 'selected' : ''}>${l.name}</option>`).join('')}</select></label><button type="button" class="icon-button theme-toggle" data-action="toggle-theme" aria-label="${themeLabel()}" title="${themeLabel()}" aria-pressed="${darkTheme()}">${icon('sun')}</button><a class="icon-button header-settings" href="#settings" aria-label="Practice settings">${icon('settings')}</a></div></header>
     <main id="main" tabindex="-1">${view === 'home' ? homeView() : view === 'courses' ? coursesView() : view === 'speaking' ? '' : view === 'review' ? reviewView() : view === 'progress' ? progressView() : view === 'settings' ? settingsView() : aboutView()}</main><footer class="footer"><span>A little practice, every day.</span><a href="#about">Free & open source ${icon('github')}</a></footer></div>`;
   if (view === 'speaking') mountSpeechPractice(document.querySelector('#main'), language, findLanguage(state.source));
   document.title = `DailyLingo · ${titles[view]}`;
@@ -164,7 +173,7 @@ function settingsView() {
 }
 
 function aboutView() {
-  return `<section class="page-intro"><p class="eyebrow">LEARNING BELONGS TO EVERYONE</p><h1>Free to learn.<br>Open to build together.</h1><p>DailyLingo is a community alpha for language learning. No subscription. No account required.</p></section><div class="about-grid"><section class="settings-card"><span class="large-soft-icon">${icon('globe')}</span><h2>A small beginning, a shared future.</h2><p>This first release covers 36 starter phrases in English, Spanish, Mandarin, Hindi, and Modern Standard Arabic. You can learn, practice recall, and keep your progress on your own device.</p><p>Courses are original starter content awaiting independent native-speaker review. Phrases may use a specific gender or politeness form. We welcome corrections with context and regional alternatives.</p><a class="button primary" href="#courses">Find your language ${icon('arrow')}</a></section><section class="settings-card"><h2>Help the next learner</h2><p>Contribute a phrase correction, language review, accessibility improvement, or code change. The source code and original course text are available under the MIT license.</p>${REPOSITORY_URL ? `<a class="button secondary" href="${escape(REPOSITORY_URL)}" target="_blank" rel="noopener">${icon('github')} View on GitHub</a>` : '<p class="field-help">The repository is prepared for GitHub publication. The public repository link will appear here once configured.</p>'}<h3>What comes next</h3><ul class="roadmap-list"><li>Native-speaker review and approved regional variants</li><li>Recorded audio and richer pronunciation support</li><li>Script foundations and grammar in context</li><li>More complete beginner curricula and guided dialogues</li><li>An optional way to sync progress across devices</li></ul><p class="field-help">Version 0.4.0 · Community alpha · No certified proficiency claims</p></section></div>`;
+  return `<section class="page-intro"><p class="eyebrow">LEARNING BELONGS TO EVERYONE</p><h1>Free to learn.<br>Open to build together.</h1><p>DailyLingo is a community alpha for language learning. No subscription. No account required.</p></section><div class="about-grid"><section class="settings-card"><span class="large-soft-icon">${icon('globe')}</span><h2>A small beginning, a shared future.</h2><p>This first release covers 36 starter phrases in English, Spanish, Mandarin, Hindi, and Modern Standard Arabic. You can learn, practice recall, and keep your progress on your own device.</p><p>Courses are original starter content awaiting independent native-speaker review. Phrases may use a specific gender or politeness form. We welcome corrections with context and regional alternatives.</p><a class="button primary" href="#courses">Find your language ${icon('arrow')}</a></section><section class="settings-card"><h2>Help the next learner</h2><p>Contribute a phrase correction, language review, accessibility improvement, or code change. The source code and original course text are available under the MIT license.</p>${REPOSITORY_URL ? `<a class="button secondary" href="${escape(REPOSITORY_URL)}" target="_blank" rel="noopener">${icon('github')} View on GitHub</a>` : '<p class="field-help">The repository is prepared for GitHub publication. The public repository link will appear here once configured.</p>'}<h3>What comes next</h3><ul class="roadmap-list"><li>Native-speaker review and approved regional variants</li><li>Recorded audio and richer pronunciation support</li><li>Script foundations and grammar in context</li><li>More complete beginner curricula and guided dialogues</li><li>An optional way to sync progress across devices</li></ul><p class="field-help">Version 0.4.1 · Community alpha · No certified proficiency claims</p></section></div>`;
 }
 
 function setTarget(id) {
@@ -313,7 +322,8 @@ document.addEventListener('click', async event => {
   if (event.target.closest('.skip-link')) { event.preventDefault(); document.querySelector('#main').focus(); return; }
   const button = event.target.closest('[data-action]'); if (!button || button.disabled) return;
   const action = button.dataset.action;
-  if (action === 'lesson') startLesson(button.dataset.unit);
+  if (action === 'toggle-theme') window.dailyLingoTheme?.toggle();
+  else if (action === 'lesson') startLesson(button.dataset.unit);
   else if (action === 'choose-language') { setTarget(button.dataset.language); location.hash = 'home'; render(); document.querySelector('#main').focus(); }
   else if (action === 'review') { location.hash = 'review'; render(); }
   else if (action === 'quick-review') startReview(dueReviews(state).slice(0, 5));
@@ -362,6 +372,7 @@ document.addEventListener('change', async event => {
 
 dialog.addEventListener('cancel', event => { event.preventDefault(); closeLesson(); });
 window.addEventListener('hashchange', () => { render(); document.querySelector('#main').focus(); });
+window.addEventListener('dailylingo:themechange', updateThemeButton);
 window.addEventListener('beforeunload', () => { saveDraft(); flushReview(); disposeSpeechPractice(); });
 window.addEventListener('pagehide', () => { saveDraft(); flushReview(); disposeSpeechPractice(); });
 window.addEventListener('pageshow', event => { if (event.persisted) render(); });

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 — 2026-10-08
+
+- Replaced Settings' sun-shaped icon with a gear in the sidebar and header.
+- Added a separate sun button to switch between light and dark modes, with keyboard access and labels that describe the next action.
+- The first visit follows the system theme; an explicit choice persists on this device and across tabs. Theme changes preserve active speaking and learning sessions.
+- Dark styling covers learning views, dialogs, forms, audio controls, and feedback. Theme initialization is cached with the offline app.
+
 ## 0.4.0 — 2026-10-08
 
 - Guided Listen → Speak and check → Review practice, with explicit browser speech-provider opt-in.

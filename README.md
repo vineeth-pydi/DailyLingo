@@ -4,12 +4,13 @@
 
 DailyLingo is a free, open source, installable language learning website. Practice everyday phrases in **English, Spanish, Mandarin Chinese, Hindi, and Modern Standard Arabic**. No account, subscription, or API key is required.
 
-**Status: v0.4.0 community alpha.** These are original starter courses awaiting independent native-speaker review, not complete A1 curricula or certified assessments. Browser audio is synthesized when a compatible voice is available.
+**Status: v0.4.1 community alpha.** These are original starter courses awaiting independent native-speaker review, not complete A1 curricula or certified assessments. Browser audio is synthesized when a compatible voice is available.
 
 **[Open the app](https://vineeth-pydi.github.io/DailyLingo/) · [Source and contributions](https://github.com/vineeth-pydi/DailyLingo)**
 
 ## What works
 
+- Light and dark themes with a sun toggle; the first visit follows the device theme, and a chosen theme stays saved on this device. Settings uses a separate gear icon.
 - Five courses, each with six lessons and 36 everyday phrases (180 phrase forms total).
 - A 12-activity lesson flow: six recognition questions, three word arrangements, and three typed recalls. Every phrase receives one production question.
 - Script-aware checking: meaningful Hindi vowel signs and Spanish accents are preserved; optional Arabic vowel signs and punctuation are normalized.
@@ -71,6 +72,7 @@ src/config.js            Public repository link
 src/audio-ui.js          Shared phrase and word speaker controls, script-aware segmentation
 src/speech.js            Guided Speaking, voices, browser word check, local recording
 src/speech-feedback.js   Ordered transcript comparison and per-word retry feedback
+src/theme.js             Theme bootstrap, system preference, saved sun toggle
 scripts/build.mjs        Static packaging and dependency-free icon generation
 scripts/serve.mjs        Local HTTP preview
 tests/                   Learning logic, content, and static build tests
