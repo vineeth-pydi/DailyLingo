@@ -1,6 +1,6 @@
 {
-  "name": "FreeLingo — Learn a little, connect a lot",
-  "short_name": "FreeLingo",
+  "name": "DailyLingo — A little practice, every day",
+  "short_name": "DailyLingo",
   "description": "Free and open source language practice for five widely spoken languages.",
   "start_url": "./",
   "scope": "./",

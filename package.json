@@ -1,15 +1,17 @@
 {
-  "name": "freelingo",
-  "version": "0.2.0",
+  "name": "dailylingo",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "An open source language learning app for five widely spoken languages.",
+  "description": "Free, open source daily language practice in English, Spanish, Mandarin, Hindi, and Arabic.",
   "license": "MIT",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "test": "node --test",
-    "check": "node --check src/app.js && node --check src/core.js && node --check src/content.js && node --check src/speech.js && node --check public/sw.js"
+    "check": "node --check src/app.js && node --check src/core.js && node --check src/drafts.js && node --check src/content.js && node --check src/speech.js && node --check public/sw.js"
   }
 }

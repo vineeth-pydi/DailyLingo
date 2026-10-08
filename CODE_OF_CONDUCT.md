@@ -1,6 +1,6 @@
 # Community code of conduct
 
-FreeLingo is a learning space for people from many backgrounds. Be respectful, specific, and curious. Discuss ideas and language usage without attacking the people behind them.
+DailyLingo is a learning space for people from many backgrounds. Be respectful, specific, and curious. Discuss ideas and language usage without attacking the people behind them.
 
 Harassment, discrimination, intimidation, sexualized behavior, threats, and publication of private information are not acceptable. Do not mock a learner's accent, writing system, or proficiency. Regional variation is welcome; explain context when correcting it.
 

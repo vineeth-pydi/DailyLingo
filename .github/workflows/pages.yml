@@ -1,4 +1,4 @@
-name: Validate and deploy FreeLingo
+name: Validate and deploy DailyLingo
 
 on:
   push:

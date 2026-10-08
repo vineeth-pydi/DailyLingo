@@ -2,6 +2,7 @@ import { languages, units, concepts, findLanguage, findConcept, findUnit } from 
 import { STORAGE_KEY, defaultState, validateState, dayKey, dueReviews, streak, exerciseSet, completeLesson, addActivity, scheduleReview, matchesAnswer, DAY } from './core.js';
 import { REPOSITORY_URL } from './config.js';
 import { mountSpeechPractice, disposeSpeechPractice, speakPhrase, resetSpeechPreferences } from './speech.js';
+import { restoreDrafts } from './drafts.js';
 
 const app = document.querySelector('#app');
 const dialog = document.querySelector('#lesson-dialog');
@@ -39,6 +40,8 @@ let state = load();
 let session = null;
 let toastTimer;
 let installPrompt;
+let phraseQuery = '';
+let reviewFilter = 'all';
 
 function load() {
   try {
@@ -46,12 +49,7 @@ function load() {
     if (!raw) return defaultState();
     const value = JSON.parse(raw);
     const clean = validateState(value);
-    for (const [key, draft] of Object.entries(value.drafts ?? {})) {
-      const [target, source, unit] = key.split(':');
-      const lesson = findUnit(unit);
-      if (!findLanguage(target) || !findLanguage(source) || target === source || !lesson || !Number.isInteger(draft.index) || draft.index < 0 || draft.index > 12 || !Array.isArray(draft.exercises) || draft.exercises.length !== 12 || !Array.isArray(draft.answers) || draft.answers.length !== draft.index || !Number.isFinite(draft.elapsed)) continue;
-      if (draft.exercises.every(ex => lesson.ids.includes(ex.id) && ['choice', 'build', 'type'].includes(ex.kind)) && draft.answers.every(answer => lesson.ids.includes(answer.id) && typeof answer.correct === 'boolean')) clean.drafts[key] = draft;
-    }
+    clean.drafts = restoreDrafts(value.drafts);
     return clean;
   } catch { storageNotice = 'Saved progress could not be read. Export or back up browser data before making changes if you need to recover it.'; return defaultState(); }
 }
@@ -72,7 +70,7 @@ function toast(message) {
 const route = () => ['home', 'courses', 'speaking', 'review', 'progress', 'settings', 'about'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
 const completedCount = language => units.filter(unit => state.completed[`${language}:${unit.id}`]).length;
 const currentLanguage = () => findLanguage(state.target);
-const nextUnit = () => units.find(unit => !state.completed[`${state.target}:${unit.id}`]) ?? units[0];
+const nextUnit = () => units.find(unit => state.drafts[`${state.target}:${state.source}:${unit.id}`]) ?? units.find(unit => !state.completed[`${state.target}:${unit.id}`]) ?? units[0];
 const languageBadge = (language, cls = '') => `<span class="language-badge ${cls}" style="--badge:${language.color};--badge-ink:${language.ink}" lang="${language.id}" dir="${language.direction}">${language.id === 'zh' ? '文' : language.id === 'hi' ? 'अ' : language.id === 'ar' ? 'ع' : language.short}</span>`;
 
 function render() {
@@ -83,15 +81,15 @@ function render() {
   const titles = { home: 'Your learning space', courses: 'Explore languages', speaking: 'Find your voice', review: 'Make it stick', progress: 'Your progress', settings: 'Make yourself at home', about: 'Open by design' };
   app.innerHTML = `
     <aside class="sidebar">
-      <a href="#home" class="brand" aria-label="FreeLingo home">${logo}<span>Free<span class="brand-light">Lingo</span></span></a>
+      <a href="#home" class="brand" aria-label="DailyLingo home">${logo}<span>Daily<span class="brand-light">Lingo</span></span></a>
       <span class="sidebar-label">YOUR LITTLE DAILY ADVENTURE</span>
       <nav aria-label="Main navigation">${[['home', 'home', 'Learn'], ['courses', 'globe', 'Languages'], ['speaking', 'speaker', 'Speaking'], ['review', 'repeat', 'Review'], ['progress', 'chart', 'Progress']].map(([id, glyph, label]) => `<a href="#${id}" ${view === id ? 'aria-current="page"' : ''} class="nav-link ${view === id ? 'active' : ''}">${icon(glyph)}<span>${label}</span>${id === 'review' && due ? `<span class="nav-count">${due}</span>` : ''}</a>`).join('')}</nav>
       <div class="sidebar-bottom"><div class="open-note">${icon('leaf')}<strong>Knowledge belongs<br>to everyone.</strong><p>Free to learn.<br>Open to build together.</p><a href="#about">Meet the project ${icon('arrow')}</a></div><a href="#settings" class="nav-link ${view === 'settings' ? 'active' : ''}" ${view === 'settings' ? 'aria-current="page"' : ''}>${icon('settings')}<span>Settings</span></a><div class="profile"><span class="avatar">Y</span><div><strong>Your learning space</strong><small>Saved on this device</small></div><span class="profile-dot" title="Device-local progress"></span></div></div>
     </aside>
     <div class="workspace"><header class="topbar"><span>${escape(titles[view])}</span><div class="header-actions"><span class="streak-chip">${icon('fire')} ${streak(state)} <span>day${streak(state) === 1 ? '' : 's'}</span></span><label class="language-select-label">${languageBadge(language, 'tiny')}<select id="target-header" aria-label="Learning language">${languages.map(l => `<option value="${l.id}" ${l.id === state.target ? 'selected' : ''}>${l.name}</option>`).join('')}</select></label><a class="icon-button header-settings" href="#settings" aria-label="Practice settings">${icon('settings')}</a></div></header>
-    <main id="main" tabindex="-1">${view === 'home' ? homeView() : view === 'courses' ? coursesView() : view === 'speaking' ? '' : view === 'review' ? reviewView() : view === 'progress' ? progressView() : view === 'settings' ? settingsView() : aboutView()}</main><footer class="footer"><span>A little practice. A world of possibility.</span><a href="#about">Free & open source ${icon('github')}</a></footer></div>`;
+    <main id="main" tabindex="-1">${view === 'home' ? homeView() : view === 'courses' ? coursesView() : view === 'speaking' ? '' : view === 'review' ? reviewView() : view === 'progress' ? progressView() : view === 'settings' ? settingsView() : aboutView()}</main><footer class="footer"><span>A little practice, every day.</span><a href="#about">Free & open source ${icon('github')}</a></footer></div>`;
   if (view === 'speaking') mountSpeechPractice(document.querySelector('#main'), language, findLanguage(state.source));
-  document.title = `FreeLingo · ${titles[view]}`;
+  document.title = `DailyLingo · ${titles[view]}`;
 }
 
 function homeView() {
@@ -102,7 +100,8 @@ function homeView() {
   const daily = state.activity[dayKey()] ?? { seconds: 0, answers: 0 };
   const minutes = Math.floor(daily.seconds / 60);
   const due = dueReviews(state).length;
-  return `<section class="welcome"><div><p class="eyebrow">MAKE ROOM FOR SOMETHING NEW</p><h1>One little lesson.<br>A little closer to the world.</h1><p>Your next conversation starts here. Let’s keep going.</p></div><span class="date-label">${new Intl.DateTimeFormat('en', { weekday: 'long', month: 'short', day: 'numeric' }).format(new Date())}</span></section>
+  return `<section class="welcome"><div><p class="eyebrow">MAKE ROOM FOR SOMETHING NEW</p><h1>One little lesson.<br>A little closer to the world.</h1><p>Build a daily habit, one useful conversation at a time.</p></div><span class="date-label">${new Intl.DateTimeFormat('en', { weekday: 'long', month: 'short', day: 'numeric' }).format(new Date())}</span></section>
+  <section class="practice-setup" aria-label="Today’s practice"><div><span class="eyebrow">YOUR NEXT STEP</span><strong>${due ? `Refresh ${Math.min(due, 5)} phrases` : draft ? `Pick up ${escape(unit.title)}` : `Practice ${escape(unit.title)}`}</strong><p>${due ? 'A short review before something new.' : draft ? `${draft.index} of 12 activities done. Your place is saved.` : 'Six useful phrases. About five minutes.'}</p></div><label for="source-home">Prompt language<select id="source-home">${languages.filter(l => l.id !== state.target).map(l => `<option value="${l.id}" ${l.id === state.source ? 'selected' : ''}>${l.name}</option>`).join('')}</select></label>${due ? `<button class="button primary" data-action="quick-review">Start quick review ${icon('arrow')}</button>` : ''}</section>
   <div class="home-columns"><div class="learning-column"><section class="hero-card"><div class="hero-content"><span class="pill">${languageBadge(language, 'tiny')} YOUR ${language.name.toUpperCase()} JOURNEY</span><h2>${completed === units.length ? 'Keep the words flowing.' : completed === 0 ? 'A new world starts<br>with a simple hello.' : escape(unit.title) + '.'}</h2><p>${escape(unit.goal)}<br>Six useful phrases. One small step.</p><button class="button primary" data-action="lesson" data-unit="${unit.id}">${draft ? 'Resume lesson' : completed === 0 ? 'Let’s begin' : 'Continue learning'} ${icon('arrow')}</button><span class="hero-meta">${icon('clock')} About 5 minutes <span>·</span> Lesson ${units.indexOf(unit) + 1} of 6</span></div><div class="hero-art" aria-hidden="true"><span class="art-orbit orbit-one"></span><span class="art-orbit orbit-two"></span><span class="art-dot dot-one"></span><span class="art-dot dot-two"></span><div class="speech-card speech-back" lang="ar" dir="rtl">مرحبًا<span>MARḤABAN</span></div><div class="speech-card speech-front" lang="${language.id}" dir="${language.direction}">${escape(language.greeting)}<span>${language.id === 'en' ? 'LET’S CONNECT' : 'A WORLD OF HELLOS'}</span></div><span class="art-spark">✳</span><span class="art-caption">Connection is a language, too.</span></div></section>
   <div class="section-heading"><div><h2>Your path, one step at a time</h2><p>Small lessons for real-life moments.</p></div><a href="#courses" class="text-link">All languages ${icon('arrow')}</a></div>
   <div class="lesson-list">${units.map((lesson, index) => {
@@ -117,13 +116,34 @@ function coursesView() {
   return `<section class="page-intro"><p class="eyebrow">CHOOSE YOUR NEXT CONNECTION</p><h1>So many ways to say hello.</h1><p>Five widely spoken languages. Start somewhere that matters to you.</p></section><div class="course-grid">${languages.map(language => `<article class="course-card" style="--course-color:${language.color};--course-ink:${language.ink}"><div class="course-visual"><span class="course-greeting" lang="${language.id}" dir="${language.direction}">${escape(language.greeting)}</span>${languageBadge(language)}<span class="course-flower">✳</span></div><div class="course-body"><p class="eyebrow">BEGINNER · COMMUNITY ALPHA</p><h2>${language.name}<span lang="${language.id}" dir="${language.direction}">${language.native}</span></h2><p>${language.description}</p><div class="course-meta">6 lessons <span>·</span> 36 phrases</div><div class="progress-track"><span style="width:${completedCount(language.id) / 6 * 100}%"></span></div><button class="button ${language.id === state.target ? 'primary' : 'secondary'}" data-action="choose-language" data-language="${language.id}">${language.id === state.target ? 'Continue learning' : 'Start learning'} ${icon('arrow')}</button></div></article>`).join('')}<article class="contribute-card">${icon('leaf')}<h2>Make a good thing<br>grow.</h2><p>Know a language well? Help review phrases, improve explanations, or build the next feature.</p><a href="#about" class="text-link">Build with us ${icon('arrow')}</a></article></div><div class="info-note">${icon('book')}<p>These starter courses teach useful phrases. They are not complete A1 curricula or certified assessments. Native review, richer grammar, and recorded audio are on the roadmap.</p></div>`;
 }
 
+function collectionItems() {
+  const query = phraseQuery.normalize('NFC').toLocaleLowerCase().trim();
+  return Object.entries(state.reviews).filter(([key, review]) => {
+    if (!key.startsWith(`${state.target}:`) || (reviewFilter === 'due' && review.due > Date.now())) return false;
+    const item = findConcept(key.split(':')[1]);
+    return [item.forms[state.target], item.forms[state.source], item.aids[state.target] ?? ''].join(' ').normalize('NFC').toLocaleLowerCase().includes(query);
+  });
+}
+
+function phraseCards(items) {
+  if (!items.length) return `<div class="empty-state">${icon('book')}<h2>${phraseQuery || reviewFilter === 'due' ? 'No matching phrases.' : 'A fresh page.'}</h2><p>${phraseQuery || reviewFilter === 'due' ? 'Try another search or show all phrases.' : 'Your first lesson will add six useful phrases to this collection.'}</p></div>`;
+  return `<div class="phrase-grid">${items.map(([key, review]) => {
+    const item = findConcept(key.split(':')[1]);
+    return `<article class="phrase-card"><div class="phrase-card-top"><span class="pill ${review.due <= Date.now() ? 'due-pill' : ''}">${review.due <= Date.now() ? 'Ready to review' : 'Next: ' + new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(review.due))}</span><button class="icon-button" data-action="speak" data-concept="${item.id}" aria-label="Listen to ${escape(item.forms[state.target])}">${icon('speaker')}</button></div><h3 lang="${state.target}" dir="${currentLanguage().direction}">${escape(item.forms[state.target])}</h3>${state.showAids && item.aids[state.target] ? `<p class="reading-aid">${escape(item.aids[state.target])}</p>` : ''}<p lang="${state.source}" dir="${findLanguage(state.source).direction}">${escape(item.forms[state.source])}</p><button class="text-link" data-action="single-review" data-concept="${item.id}">Practice this phrase ${icon('arrow')}</button></article>`;
+  }).join('')}</div>`;
+}
+
+function updateCollection() {
+  const items = collectionItems();
+  document.querySelector('#phrase-results').innerHTML = phraseCards(items);
+  document.querySelector('#phrase-result-count').textContent = `${items.length} matching phrase${items.length === 1 ? '' : 's'}`;
+}
+
 function reviewView() {
   const all = Object.entries(state.reviews).filter(([key]) => key.startsWith(`${state.target}:`));
   const due = dueReviews(state);
-  return `<section class="page-intro"><p class="eyebrow">A LITTLE REPETITION GOES A LONG WAY</p><h1>Give your words another hello.</h1><p>Recall a phrase, check yourself, and let time do its part.</p></section><section class="review-banner"><span class="large-soft-icon">${icon('repeat')}</span><div><h2>${due.length ? `${due.length} phrases are ready for you.` : all.length ? 'You’re all caught up.' : 'Your collection starts with a lesson.'}</h2><p>${due.length ? 'A few minutes of practice will make these feel more familiar.' : all.length ? 'You can still practice any phrase below. Due reviews return as time passes.' : 'Finish a lesson to save its phrases here for future practice.'}</p></div><button class="button primary" data-action="${due.length ? 'start-review' : all.length ? 'practice-all' : 'lesson'}" data-unit="${nextUnit().id}">${due.length || all.length ? 'Start practice' : 'Start a lesson'} ${icon('arrow')}</button></section><div class="section-heading"><div><h2>Your phrase collection</h2><p>${all.length} phrases in ${currentLanguage().name}</p></div><span class="quiet-badge">Intervals: 1 · 3 · 7 · 14 · 30 days</span></div>${all.length ? `<div class="phrase-grid">${all.map(([key, review]) => {
-    const item = findConcept(key.split(':')[1]);
-    return `<article class="phrase-card"><div class="phrase-card-top"><span class="pill ${review.due <= Date.now() ? 'due-pill' : ''}">${review.due <= Date.now() ? 'Ready to review' : 'Next: ' + new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(review.due))}</span><button class="icon-button" data-action="speak" data-concept="${item.id}" aria-label="Listen to ${escape(item.forms[state.target])}">${icon('speaker')}</button></div><h3 lang="${state.target}" dir="${currentLanguage().direction}">${escape(item.forms[state.target])}</h3><p lang="${state.source}" dir="${findLanguage(state.source).direction}">${escape(item.forms[state.source])}</p><button class="text-link" data-action="single-review" data-concept="${item.id}">Practice this phrase ${icon('arrow')}</button></article>`;
-  }).join('')}</div>` : `<div class="empty-state">${icon('book')}<h2>A fresh page.</h2><p>Your first lesson will add six useful phrases to this collection.</p></div>`}`;
+  const items = collectionItems();
+  return `<section class="page-intro"><p class="eyebrow">A LITTLE REPETITION GOES A LONG WAY</p><h1>Give your words another hello.</h1><p>Recall a phrase, check yourself, and let time do its part.</p></section><section class="review-banner"><span class="large-soft-icon">${icon('repeat')}</span><div><h2>${due.length ? `${due.length} phrases are ready for you.` : all.length ? 'You’re all caught up.' : 'Your collection starts with a lesson.'}</h2><p>${due.length ? 'A few minutes of practice will make these feel more familiar.' : all.length ? 'You can still practice any phrase below. Due reviews return as time passes.' : 'Finish a lesson to save its phrases here for future practice.'}</p></div><button class="button primary" data-action="${due.length ? 'start-review' : all.length ? 'practice-all' : 'lesson'}" data-unit="${nextUnit().id}">${due.length || all.length ? 'Start practice' : 'Start a lesson'} ${icon('arrow')}</button></section><div class="section-heading"><div><h2>Your phrase collection</h2><p>${all.length} phrases in ${currentLanguage().name}</p></div><span class="quiet-badge">Intervals: 1 · 3 · 7 · 14 · 30 days</span></div>${all.length ? `<div class="collection-tools"><label for="phrase-search">Find a phrase<input type="search" id="phrase-search" placeholder="Search a phrase or its meaning" value="${escape(phraseQuery)}" aria-controls="phrase-results"></label><label for="review-filter">Show<select id="review-filter" aria-controls="phrase-results"><option value="all" ${reviewFilter === 'all' ? 'selected' : ''}>All phrases</option><option value="due" ${reviewFilter === 'due' ? 'selected' : ''}>Ready to review</option></select></label></div>` : ''}<p id="phrase-result-count" class="collection-count" role="status">${items.length} matching phrase${items.length === 1 ? '' : 's'}</p><div id="phrase-results">${phraseCards(items)}</div>`;
 }
 
 function progressView() {
@@ -139,16 +159,17 @@ function progressView() {
 }
 
 function settingsView() {
-  return `<section class="page-intro"><p class="eyebrow">LEARNING AT YOUR PACE</p><h1>A space that feels like yours.</h1><p>Choose your rhythm. Take your progress with you.</p></section><div class="settings-grid"><section class="settings-card"><h2>Your practice</h2><label class="field-label" for="target-settings">I’m learning</label><select id="target-settings">${languages.map(l => `<option value="${l.id}" ${l.id === state.target ? 'selected' : ''}>${l.name} · ${l.native}</option>`).join('')}</select><label class="field-label" for="source-settings">Translate prompts into</label><select id="source-settings">${languages.filter(l => l.id !== state.target).map(l => `<option value="${l.id}" ${l.id === state.source ? 'selected' : ''}>${l.name} · ${l.native}</option>`).join('')}</select><p class="field-help">Menus are in English. Phrase meanings use this language.</p><label class="field-label" for="daily-goal">Daily practice goal</label><select id="daily-goal">${[5, 10, 15, 20].map(value => `<option value="${value}" ${value === state.goal ? 'selected' : ''}>${value} minutes</option>`).join('')}</select><label class="toggle-row"><span><strong>Pronunciation guides</strong><small>Show Pinyin and script reading aids</small></span><input type="checkbox" id="show-aids" ${state.showAids ? 'checked' : ''}></label><p class="field-help">Reading aids are approximations, not a replacement for listening or learning the script.</p></section><section class="settings-card"><h2>Your data stays yours</h2><p>Lessons and progress are stored in this browser. There are no accounts, tracking scripts, or app servers receiving your answers.</p><p class="field-help">Clearing browser data clears your progress. Export a backup before switching browsers or devices.</p><div class="settings-actions"><button class="button secondary" data-action="export">${icon('download')} Export progress</button><label class="button secondary import-label" for="import-file">Import backup<input type="file" id="import-file" accept=".json,application/json"></label></div><h3>Audio & privacy</h3><p class="field-help">Optional audio uses your browser’s speech service. Available voices and whether speech is processed on-device depend on your browser and operating system. Speaking lets you record locally and opt into browser transcription, which may send audio to a browser speech provider. Microphone access starts only when you choose a recording or word check. <a href="#speaking">Open Speaking</a>.</p><h3>Install FreeLingo</h3><p class="field-help">Use your browser’s “Install app” or “Add to Home Screen” option. Once loaded online, the app shell and lessons are cached for offline practice. Browser voices may still need a connection.</p><button class="button secondary" data-action="install">Install help ${icon('arrow')}</button><hr><button class="danger-button" data-action="reset">Erase progress on this device</button><p class="field-help">This removes all lesson history and settings. Export first if you want a backup.</p></section></div>`;
+  return `<section class="page-intro"><p class="eyebrow">LEARNING AT YOUR PACE</p><h1>A space that feels like yours.</h1><p>Choose your rhythm. Take your progress with you.</p></section><div class="settings-grid"><section class="settings-card"><h2>Your practice</h2><label class="field-label" for="target-settings">I’m learning</label><select id="target-settings">${languages.map(l => `<option value="${l.id}" ${l.id === state.target ? 'selected' : ''}>${l.name} · ${l.native}</option>`).join('')}</select><label class="field-label" for="source-settings">Translate prompts into</label><select id="source-settings">${languages.filter(l => l.id !== state.target).map(l => `<option value="${l.id}" ${l.id === state.source ? 'selected' : ''}>${l.name} · ${l.native}</option>`).join('')}</select><p class="field-help">Menus are in English. Phrase meanings use this language.</p><label class="field-label" for="daily-goal">Daily practice goal</label><select id="daily-goal">${[5, 10, 15, 20].map(value => `<option value="${value}" ${value === state.goal ? 'selected' : ''}>${value} minutes</option>`).join('')}</select><label class="toggle-row"><span><strong>Pronunciation guides</strong><small>Show Pinyin and script reading aids</small></span><input type="checkbox" id="show-aids" ${state.showAids ? 'checked' : ''}></label><p class="field-help">Reading aids are approximations, not a replacement for listening or learning the script.</p></section><section class="settings-card"><h2>Your data stays yours</h2><p>Lessons and progress are stored in this browser. There are no accounts, tracking scripts, or app servers receiving your answers.</p><p class="field-help">Clearing browser data clears your progress. Export a backup before switching browsers or devices.</p><div class="settings-actions"><button class="button secondary" data-action="export">${icon('download')} Export progress</button><label class="button secondary import-label" for="import-file">Import backup<input type="file" id="import-file" accept=".json,application/json"></label></div><h3>Audio & privacy</h3><p class="field-help">Optional audio uses your browser’s speech service. Available voices and whether speech is processed on-device depend on your browser and operating system. Speaking lets you record locally and opt into browser transcription, which may send audio to a browser speech provider. Microphone access starts only when you choose a recording or word check. <a href="#speaking">Open Speaking</a>.</p><h3>Install DailyLingo</h3><p class="field-help">Use your browser’s “Install app” or “Add to Home Screen” option. Once loaded online, the app shell and lessons are cached for offline practice. Browser voices may still need a connection.</p><button class="button secondary" data-action="install">Install help ${icon('arrow')}</button><hr><button class="danger-button" data-action="reset">Erase progress on this device</button><p class="field-help">This removes all lesson history and settings. Export first if you want a backup.</p></section></div>`;
 }
 
 function aboutView() {
-  return `<section class="page-intro"><p class="eyebrow">LEARNING BELONGS TO EVERYONE</p><h1>Free to learn.<br>Open to build together.</h1><p>FreeLingo is a community alpha for language learning. No subscription. No account required.</p></section><div class="about-grid"><section class="settings-card"><span class="large-soft-icon">${icon('globe')}</span><h2>A small beginning, a shared future.</h2><p>This first release covers 36 starter phrases in English, Spanish, Mandarin, Hindi, and Modern Standard Arabic. You can learn, practice recall, and keep your progress on your own device.</p><p>Courses are original starter content awaiting independent native-speaker review. Phrases may use a specific gender or politeness form. We welcome corrections with context and regional alternatives.</p><a class="button primary" href="#courses">Find your language ${icon('arrow')}</a></section><section class="settings-card"><h2>Help the next learner</h2><p>Contribute a phrase correction, language review, accessibility improvement, or code change. The source code and original course text are available under the MIT license.</p>${REPOSITORY_URL ? `<a class="button secondary" href="${escape(REPOSITORY_URL)}" target="_blank" rel="noopener">${icon('github')} View on GitHub</a>` : '<p class="field-help">The repository is prepared for GitHub publication. The public repository link will appear here once configured.</p>'}<h3>What comes next</h3><ul class="roadmap-list"><li>Native-speaker review and approved regional variants</li><li>Recorded audio and richer pronunciation support</li><li>Script foundations and grammar in context</li><li>More complete beginner curricula and guided dialogues</li><li>An optional way to sync progress across devices</li></ul><p class="field-help">Version 0.2.0 · Community alpha · No certified proficiency claims</p></section></div>`;
+  return `<section class="page-intro"><p class="eyebrow">LEARNING BELONGS TO EVERYONE</p><h1>Free to learn.<br>Open to build together.</h1><p>DailyLingo is a community alpha for language learning. No subscription. No account required.</p></section><div class="about-grid"><section class="settings-card"><span class="large-soft-icon">${icon('globe')}</span><h2>A small beginning, a shared future.</h2><p>This first release covers 36 starter phrases in English, Spanish, Mandarin, Hindi, and Modern Standard Arabic. You can learn, practice recall, and keep your progress on your own device.</p><p>Courses are original starter content awaiting independent native-speaker review. Phrases may use a specific gender or politeness form. We welcome corrections with context and regional alternatives.</p><a class="button primary" href="#courses">Find your language ${icon('arrow')}</a></section><section class="settings-card"><h2>Help the next learner</h2><p>Contribute a phrase correction, language review, accessibility improvement, or code change. The source code and original course text are available under the MIT license.</p>${REPOSITORY_URL ? `<a class="button secondary" href="${escape(REPOSITORY_URL)}" target="_blank" rel="noopener">${icon('github')} View on GitHub</a>` : '<p class="field-help">The repository is prepared for GitHub publication. The public repository link will appear here once configured.</p>'}<h3>What comes next</h3><ul class="roadmap-list"><li>Native-speaker review and approved regional variants</li><li>Recorded audio and richer pronunciation support</li><li>Script foundations and grammar in context</li><li>More complete beginner curricula and guided dialogues</li><li>An optional way to sync progress across devices</li></ul><p class="field-help">Version 0.3.0 · Community alpha · No certified proficiency claims</p></section></div>`;
 }
 
 function setTarget(id) {
   if (!findLanguage(id)) return;
   state.target = id;
+  phraseQuery = ''; reviewFilter = 'all';
   if (state.source === id) state.source = id === 'en' ? 'es' : 'en';
   save(); render();
 }
@@ -167,6 +188,25 @@ function saveDraft() {
   save();
 }
 
+// Review answers are durable as soon as they are checked. The counters also
+// keep finish, close, and browser lifecycle events from recording them twice.
+function flushReview() {
+  if (!session || session.mode !== 'review' || session.finished || !session.answers.length) return;
+  tick();
+  const savedAnswers = session.savedAnswers ?? 0;
+  const seconds = Math.max(0, session.elapsed - (session.savedElapsed ?? 0));
+  const answers = session.answers.length - savedAnswers;
+  if (!answers && !seconds) return;
+  for (const answer of session.answers.slice(savedAnswers)) {
+    const key = `${state.target}:${answer.id}`;
+    state.reviews[key] = scheduleReview(state.reviews[key], answer.correct);
+  }
+  addActivity(state, seconds, answers);
+  session.savedAnswers = session.answers.length;
+  session.savedElapsed = session.elapsed;
+  save();
+}
+
 function startLesson(unitId) {
   const unit = findUnit(unitId);
   if (!unit) return;
@@ -179,11 +219,11 @@ function startLesson(unitId) {
 
 function startReview(items) {
   if (!items.length) { location.hash = 'review'; render(); return; }
-  session = { mode: 'review', exercises: items.map(item => ({ id: item.id, kind: 'type' })), index: 0, answers: [], elapsed: 0, tick: Date.now(), chosen: [], selected: '', typed: '', feedback: null, usedHint: false };
+  session = { mode: 'review', exercises: items.map(item => ({ id: item.id, kind: 'type' })), index: 0, answers: [], elapsed: 0, savedAnswers: 0, savedElapsed: 0, tick: Date.now(), chosen: [], selected: '', typed: '', feedback: null, usedHint: false };
   renderExercise(); dialog.showModal();
 }
 
-function renderExercise() {
+function renderExercise(restoreBuildFocus = false) {
   const exercise = session.exercises[session.index];
   const item = findConcept(exercise.id);
   const language = currentLanguage();
@@ -193,11 +233,16 @@ function renderExercise() {
   const text = item.forms[isChoice ? state.target : state.source];
   const textLang = isChoice ? state.target : state.source;
   const ready = isChoice ? !!session.selected : exercise.kind === 'build' ? session.chosen.length > 0 : !!session.typed.trim();
-  dialog.innerHTML = `<div class="lesson-shell"><header class="lesson-header"><button class="icon-button" data-action="close-lesson" aria-label="Save and close practice">${icon('close')}</button><div class="lesson-progress"><span style="width:${session.index / session.exercises.length * 100}%"></span></div><span>${session.index + 1} / ${session.exercises.length}</span></header><div class="exercise-body"><p class="eyebrow">${session.mode === 'review' ? 'SPACED REVIEW' : `${escape(session.unit.title)} · ${language.name}`}</p><h2>${prompt}</h2><p class="exercise-instruction">${isChoice ? `Choose the meaning in ${findLanguage(state.source).name}.` : exercise.kind === 'build' ? `Arrange the words in ${language.name}.` : `Write this in ${language.name}. Punctuation and capitalization won’t affect the check.`}</p><div class="prompt-box"><span lang="${textLang}" dir="${findLanguage(textLang).direction}">${escape(text)}</span>${isChoice || session.usedHint ? `<button class="icon-button" data-action="speak" data-concept="${item.id}" aria-label="Listen to the phrase">${icon('speaker')}</button>` : ''}</div>${hint ? `<p class="reading-aid">${escape(hint)}</p>` : ''}
-  <form id="answer-form">${isChoice ? `<div class="answer-options">${exercise.choices.map((option, index) => `<button type="button" class="answer-option ${session.selected === option.id ? 'selected' : ''}" data-action="select-answer" data-answer="${option.id}" ${session.feedback ? 'disabled' : ''}><span>${index + 1}</span><b lang="${state.source}" dir="${findLanguage(state.source).direction}">${escape(option.text)}</b>${session.selected === option.id ? icon('check') : ''}</button>`).join('')}</div>` : exercise.kind === 'build' ? `<div class="build-answer" dir="${language.direction}" aria-label="Your arranged phrase">${session.chosen.map((tokenIndex, index) => `<button type="button" class="word-chip" data-action="unpick-word" data-index="${index}" ${session.feedback ? 'disabled' : ''}>${escape(exercise.tokens[tokenIndex])}</button>`).join('') || '<span>Tap words below to build the phrase</span>'}</div><div class="word-bank" dir="${language.direction}">${exercise.tokens.map((token, index) => `<button type="button" class="word-chip ${session.chosen.includes(index) ? 'used' : ''}" data-action="pick-word" data-index="${index}" ${session.chosen.includes(index) || session.feedback ? 'disabled' : ''}>${escape(token)}</button>`).join('')}</div>` : `<label class="sr-only" for="typed-answer">Your answer in ${language.name}</label><input id="typed-answer" class="typed-answer" autocomplete="off" autocapitalize="off" spellcheck="false" lang="${state.target}" dir="${language.direction}" placeholder="Type your answer…" value="${escape(session.typed)}" ${session.feedback ? 'disabled' : ''}><p class="keyboard-note">Use your ${language.name} keyboard${language.id === 'zh' ? ' / input method' : ''}. Need a hand? Reveal the phrase below.</p><button type="button" class="text-link" data-action="hint" ${session.feedback ? 'disabled' : ''}>${session.usedHint ? 'Phrase revealed' : 'Show a hint'}</button>${session.usedHint ? `<p class="hint-text" lang="${language.id}" dir="${language.direction}">${escape(item.forms[state.target])}</p>` : ''}`}
+  dialog.innerHTML = `<div class="lesson-shell"><header class="lesson-header"><button class="icon-button" data-action="close-lesson" aria-label="Save and close practice">${icon('close')}</button><div class="lesson-progress" role="progressbar" aria-label="Lesson progress" aria-valuemin="0" aria-valuemax="${session.exercises.length}" aria-valuenow="${session.index}"><span style="width:${session.index / session.exercises.length * 100}%"></span></div><span>${session.index + 1} / ${session.exercises.length}</span></header><div class="exercise-body"><p class="eyebrow">${session.mode === 'review' ? 'SPACED REVIEW' : `${escape(session.unit.title)} · ${language.name}`}</p><h2>${prompt}</h2><p class="exercise-instruction">${isChoice ? `Choose the meaning in ${findLanguage(state.source).name}.` : exercise.kind === 'build' ? `Arrange the words in ${language.name}.` : `Write this in ${language.name}. Punctuation and capitalization won’t affect the check.`}</p><div class="prompt-box"><span lang="${textLang}" dir="${findLanguage(textLang).direction}">${escape(text)}</span>${isChoice || session.usedHint ? `<button class="icon-button" data-action="speak" data-concept="${item.id}" aria-label="Listen to the phrase">${icon('speaker')}</button>` : ''}</div>${hint ? `<p class="reading-aid">${escape(hint)}</p>` : ''}
+  <form id="answer-form">${isChoice ? `<div class="answer-options">${exercise.choices.map((option, index) => `<button type="button" class="answer-option ${session.selected === option.id ? 'selected' : ''}" aria-pressed="${session.selected === option.id}" data-action="select-answer" data-answer="${option.id}" ${session.feedback ? 'disabled' : ''}><span>${index + 1}</span><b lang="${state.source}" dir="${findLanguage(state.source).direction}">${escape(option.text)}</b>${session.selected === option.id ? icon('check') : ''}</button>`).join('')}</div>` : exercise.kind === 'build' ? `<div class="build-answer" dir="${language.direction}" aria-label="Your arranged phrase">${session.chosen.map((tokenIndex, index) => `<button type="button" class="word-chip" data-action="unpick-word" data-index="${index}" ${session.feedback ? 'disabled' : ''}>${escape(exercise.tokens[tokenIndex])}</button>`).join('') || '<span>Tap words below to build the phrase</span>'}</div><div class="word-bank" dir="${language.direction}">${exercise.tokens.map((token, index) => `<button type="button" class="word-chip ${session.chosen.includes(index) ? 'used' : ''}" data-action="pick-word" data-index="${index}" ${session.chosen.includes(index) || session.feedback ? 'disabled' : ''}>${escape(token)}</button>`).join('')}</div>` : `<label class="sr-only" for="typed-answer">Your answer in ${language.name}</label><input id="typed-answer" class="typed-answer" autocomplete="off" autocapitalize="off" spellcheck="false" lang="${state.target}" dir="${language.direction}" placeholder="Type your answer…" value="${escape(session.typed)}" ${session.feedback ? 'disabled' : ''}><p class="keyboard-note">Use your ${language.name} keyboard${language.id === 'zh' ? ' / input method' : ''}. Need a hand? Reveal the phrase below.</p><button type="button" class="text-link" data-action="hint" ${session.feedback ? 'disabled' : ''}>${session.usedHint ? 'Phrase revealed' : 'Show a hint'}</button>${session.usedHint ? `<p class="hint-text" lang="${language.id}" dir="${language.direction}">${escape(item.forms[state.target])}</p>` : ''}`}
   <div class="lesson-bottom ${session.feedback ? session.feedback.correct ? 'correct' : 'incorrect' : ''}"><div role="status" aria-live="polite">${session.feedback ? `<strong>${session.feedback.correct ? 'You’ve got it.' : session.feedback.matched && session.usedHint ? 'Right phrase, with a little help.' : 'A little more practice will help.'}</strong><p>${session.feedback.correct ? 'Keep that phrase in your collection.' : `Expected: ${escape(item.forms[state.target])}`}</p>` : '<span>Take your time. This is practice.</span>'}</div><button class="button primary" ${session.feedback ? 'type="button" data-action="next-exercise"' : 'type="submit"'} ${!session.feedback && !ready ? 'disabled' : ''}>${session.feedback ? 'Continue' : 'Check answer'} ${icon(session.feedback ? 'arrow' : 'check')}</button></div></form></div></div>`;
   if (session.feedback) dialog.querySelector('[data-action="next-exercise"]').focus();
   else if (exercise.kind === 'type') dialog.querySelector('#typed-answer').focus();
+  else if (isChoice && session.selected) dialog.querySelector(`[data-action="select-answer"][data-answer="${session.selected}"]`)?.focus();
+  else if (exercise.kind === 'build' && (restoreBuildFocus || session.chosen.length)) {
+    const nextWord = dialog.querySelector('.word-bank .word-chip:not(:disabled)');
+    (nextWord ?? dialog.querySelector('button[type="submit"]'))?.focus();
+  }
 }
 
 function checkAnswer() {
@@ -212,7 +257,8 @@ function checkAnswer() {
   const correct = matched && !session.usedHint;
   session.answers.push({ id: item.id, correct });
   session.feedback = { correct, matched };
-  saveDraft(); renderExercise();
+  if (session.mode === 'review') flushReview(); else saveDraft();
+  renderExercise();
 }
 
 function nextExercise() {
@@ -224,18 +270,14 @@ function nextExercise() {
 }
 
 function finishSession() {
-  tick(); session.finished = true;
+  if (!session || session.finished) return;
+  tick();
   const score = Math.round(session.answers.filter(answer => answer.correct).length / Math.max(1, session.answers.length) * 100);
   if (session.mode === 'lesson') {
     state = completeLesson(state, session.unit.id, session.answers, session.elapsed);
     delete state.drafts[session.key];
-  } else {
-    for (const answer of session.answers) {
-      const key = `${state.target}:${answer.id}`;
-      state.reviews[key] = scheduleReview(state.reviews[key], answer.correct);
-    }
-    addActivity(state, session.elapsed, session.answers.length);
-  }
+  } else flushReview();
+  session.finished = true;
   save(); render();
   dialog.innerHTML = `<div class="lesson-shell summary-shell"><button class="icon-button summary-close" data-action="close-lesson" aria-label="Close summary">${icon('close')}</button><span class="summary-illustration">${icon('leaf')}</span><p class="eyebrow">ONE SMALL STEP, WELL TAKEN</p><h2>${session.mode === 'lesson' ? 'A little closer to the world.' : 'Your words are growing.'}</h2><p>You made space for ${currentLanguage().name} today.<br>${session.mode === 'lesson' ? escape(session.unit.goal) : 'Thanks for giving these phrases another look.'}</p><div class="summary-stats"><div><strong>${session.answers.length}</strong><span>answers practiced</span></div><div><strong>${score}%</strong><span>without a hint</span></div><div><strong>${session.elapsed >= 60 ? Math.round(session.elapsed / 60) : Math.round(session.elapsed)}</strong><span>${session.elapsed >= 60 ? 'minutes' : 'seconds'} this session</span></div></div>${session.unit ? `<div class="summary-note"><strong>A note to take with you</strong><p>${escape(session.unit.note)}</p></div>` : ''}<p class="field-help">Incorrect and hinted phrases return in about 10 minutes. Stronger phrases return after a longer interval.</p><button class="button primary" data-action="close-lesson">Back to my learning ${icon('arrow')}</button></div>`;
   dialog.querySelector('.button.primary').focus();
@@ -243,14 +285,7 @@ function finishSession() {
 
 function closeLesson() {
   saveDraft();
-  if (session?.mode === 'review' && !session.finished && session.answers.length) {
-    tick();
-    for (const answer of session.answers) {
-      const key = `${state.target}:${answer.id}`;
-      state.reviews[key] = scheduleReview(state.reviews[key], answer.correct);
-    }
-    addActivity(state, session.elapsed, session.answers.length); save();
-  }
+  flushReview();
   session = null; speechSynthesisSafeCancel(); dialog.close(); render();
 }
 
@@ -270,7 +305,7 @@ function confirmAction(title, description, actionLabel, callback) {
 function exportProgress() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a'); anchor.href = url; anchor.download = `freelingo-progress-${dayKey()}.json`; anchor.click();
+  const anchor = document.createElement('a'); anchor.href = url; anchor.download = `dailylingo-progress-${dayKey()}.json`; anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000); toast('Progress exported. Keep the file for your next device.');
 }
 
@@ -281,18 +316,19 @@ document.addEventListener('click', async event => {
   if (action === 'lesson') startLesson(button.dataset.unit);
   else if (action === 'choose-language') { setTarget(button.dataset.language); location.hash = 'home'; render(); document.querySelector('#main').focus(); }
   else if (action === 'review') { location.hash = 'review'; render(); }
+  else if (action === 'quick-review') startReview(dueReviews(state).slice(0, 5));
   else if (action === 'start-review') startReview(dueReviews(state));
   else if (action === 'practice-all') startReview(Object.keys(state.reviews).filter(key => key.startsWith(`${state.target}:`)).map(key => findConcept(key.split(':')[1])));
   else if (action === 'single-review') startReview([findConcept(button.dataset.concept)]);
   else if (action === 'close-lesson') closeLesson();
   else if (action === 'select-answer') { session.selected = button.dataset.answer; renderExercise(); }
-  else if (action === 'pick-word') { session.chosen.push(Number(button.dataset.index)); renderExercise(); }
-  else if (action === 'unpick-word') { session.chosen.splice(Number(button.dataset.index), 1); renderExercise(); }
+  else if (action === 'pick-word') { session.chosen.push(Number(button.dataset.index)); renderExercise(true); }
+  else if (action === 'unpick-word') { session.chosen.splice(Number(button.dataset.index), 1); renderExercise(true); }
   else if (action === 'next-exercise') nextExercise();
   else if (action === 'hint') { session.usedHint = true; renderExercise(); }
   else if (action === 'speak') speak(button.dataset.concept);
   else if (action === 'export') exportProgress();
-  else if (action === 'reset') confirmAction('Start with a fresh page?', 'This erases all FreeLingo progress on this device. Export a backup first if you want to keep it.', 'Erase progress', () => { resetSpeechPreferences(); state = defaultState(); save(); render(); toast('Progress erased. Your next adventure is ready.'); });
+  else if (action === 'reset') confirmAction('Start with a fresh page?', 'This erases all DailyLingo progress on this device. Export a backup first if you want to keep it.', 'Erase progress', () => { resetSpeechPreferences(); state = defaultState(); save(); render(); toast('Progress erased. Your next adventure is ready.'); });
   else if (action === 'install') {
     if (installPrompt) { await installPrompt.prompt(); installPrompt = null; }
     else toast('Open your browser menu and choose “Install app” or “Add to Home Screen.” In Safari on iPhone, use Share → Add to Home Screen.');
@@ -301,31 +337,33 @@ document.addEventListener('click', async event => {
 
 document.addEventListener('submit', event => { if (event.target.id === 'answer-form') { event.preventDefault(); checkAnswer(); } });
 document.addEventListener('input', event => {
+  if (event.target.id === 'phrase-search') { phraseQuery = event.target.value; updateCollection(); }
   if (event.target.id === 'typed-answer' && session) { session.typed = event.target.value; dialog.querySelector('button[type="submit"]').disabled = !session.typed.trim(); }
 });
 document.addEventListener('change', async event => {
   const { id, value } = event.target;
   if (id === 'target-header' || id === 'target-settings') setTarget(value);
-  else if (id === 'source-settings' && findLanguage(value) && value !== state.target) { state.source = value; save(); render(); }
+  else if (id === 'review-filter') { reviewFilter = value === 'due' ? 'due' : 'all'; updateCollection(); }
+  else if ((id === 'source-settings' || id === 'source-home') && findLanguage(value) && value !== state.target) { state.source = value; save(); render(); }
   else if (id === 'daily-goal') { state.goal = Number(value); save(); render(); }
   else if (id === 'show-aids') { state.showAids = event.target.checked; save(); }
   else if (id === 'import-file') {
     const file = event.target.files[0]; if (!file) return;
     try {
-      if (file.size > 1_000_000) throw new Error('This backup is too large. Choose a FreeLingo JSON backup under 1 MB.');
+      if (file.size > 1_000_000) throw new Error('This backup is too large. Choose a DailyLingo JSON backup under 1 MB.');
       const imported = validateState(JSON.parse(await file.text()));
       confirmAction('Replace this device’s progress?', 'Importing replaces your current progress and settings. Export a backup first if you want to keep them.', 'Import progress', () => { state = imported; save(); render(); toast('Your progress is here. Welcome back.'); });
-    } catch (error) { toast(error.message === 'This is not a supported FreeLingo backup.' || error.message.includes('too large') ? error.message : 'This file could not be read. Choose a valid FreeLingo JSON backup.'); }
+    } catch (error) { toast(error.message === 'This is not a supported DailyLingo backup.' || error.message.includes('too large') ? error.message : 'This file could not be read. Choose a valid DailyLingo JSON backup.'); }
     event.target.value = '';
   }
 });
 
 dialog.addEventListener('cancel', event => { event.preventDefault(); closeLesson(); });
 window.addEventListener('hashchange', () => { render(); document.querySelector('#main').focus(); });
-window.addEventListener('beforeunload', () => { saveDraft(); disposeSpeechPractice(); });
-window.addEventListener('pagehide', () => disposeSpeechPractice());
+window.addEventListener('beforeunload', () => { saveDraft(); flushReview(); disposeSpeechPractice(); });
+window.addEventListener('pagehide', () => { saveDraft(); flushReview(); disposeSpeechPractice(); });
 window.addEventListener('pageshow', event => { if (event.persisted) render(); });
-document.addEventListener('visibilitychange', () => { if (session) { if (document.hidden) saveDraft(); session.tick = Date.now(); } });
+document.addEventListener('visibilitychange', () => { if (session) { if (document.hidden) { saveDraft(); flushReview(); } session.tick = Date.now(); } });
 window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt = event; });
 window.addEventListener('offline', () => toast('You’re offline. Lessons and progress still work; some browser voices may be unavailable.'));
 window.addEventListener('storage', event => {

@@ -1,23 +1,26 @@
-# FreeLingo
+# DailyLingo
 
-**A little practice. A world of possibility.**
+**A little practice, every day.**
 
-FreeLingo is a free, open source, installable language learning website. Practice everyday phrases in **English, Spanish, Mandarin Chinese, Hindi, and Modern Standard Arabic**. No account, subscription, or API key is required.
+DailyLingo is a free, open source, installable language learning website. Practice everyday phrases in **English, Spanish, Mandarin Chinese, Hindi, and Modern Standard Arabic**. No account, subscription, or API key is required.
 
-**Status: v0.2.0 community alpha.** These are original starter courses awaiting independent native-speaker review, not complete A1 curricula or certified assessments. Browser audio is synthesized when a compatible voice is available.
+**Status: v0.3.0 community alpha.** These are original starter courses awaiting independent native-speaker review, not complete A1 curricula or certified assessments. Browser audio is synthesized when a compatible voice is available.
 
-**[Open the app](https://vineeth-pydi.github.io/FreeLingo/) · [Source and contributions](https://github.com/vineeth-pydi/FreeLingo)**
+**[Open the app](https://vineeth-pydi.github.io/DailyLingo/) · [Source and contributions](https://github.com/vineeth-pydi/DailyLingo)**
 
 ## What works
 
 - Five courses, each with six lessons and 36 everyday phrases (180 phrase forms total).
-- A 12-activity lesson flow with recognition, word arrangement, and typed recall.
+- A 12-activity lesson flow: six recognition questions, three word arrangements, and three typed recalls. Every phrase receives one production question.
 - Script-aware checking: meaningful Hindi vowel signs and Spanish accents are preserved; optional Arabic vowel signs and punctuation are normalized.
 - Optional Pinyin and Hindi/Arabic reading aids, plus a Speaking studio with normal/slow playback, voice selection, and an on-device-only voice filter.
 - Local microphone recording (up to 30 seconds), listening back, downloading, and deleting.
 - Optional browser transcription with explicit opt-in; recognized-word matching is not a pronunciation score.
-- Phrase reviews scheduled at 1, 3, 7, 14, and 30 days; missed/hinted items return after 10 minutes.
-- Device-local progress, daily goals, activity history, and resumable lesson drafts.
+- Phrase reviews scheduled at 1, 3, 7, 14, and 30 days; missed/hinted items return after 10 minutes. Successful early practice preserves the scheduled review date.
+- A clear daily practice plan, draft-first lesson resumption, daily goals, and activity history.
+- A searchable phrase collection with target-language, meaning, and reading-aid search, plus a due-review filter.
+- Device-local progress and validated resumable lesson drafts.
+- Review answers save immediately; refreshing or closing preserves checked answers without counting them twice.
 - Prompt meanings in any of the five languages, distinct from the target language. Interface text is in English.
 - Backup export/import and progress deletion.
 - Responsive keyboard-accessible interface, RTL Arabic content, and reduced-motion support.
@@ -39,18 +42,18 @@ npm test
 npm run build
 ```
 
-The build writes `dist/`, creates PWA PNG icons, and gives the offline cache a release-specific digest. Deploy only `dist/`, never the repository root. The development server builds once at startup; restart it after editing source files.
+The build replaces generated `dist/` output, creates PWA PNG icons, and gives the offline cache a release-specific digest scoped to the app's URL. Removed assets are not carried into the next deployment. Deploy only `dist/`, never the repository root. The development server builds once at startup; restart it after editing source files.
 
 ## Deploy to GitHub Pages
 
 The repository includes [`.github/workflows/pages.yml`](.github/workflows/pages.yml). Pull requests run checks. Pushes to `main` run checks, build the static site, and deploy the resulting Pages artifact.
 
-1. Create a public repository named `FreeLingo` and push the source.
+1. Create a public repository named `DailyLingo` and push the source.
 2. In **Settings → Pages → Build and deployment**, select **GitHub Actions**.
 3. Run the workflow or push to `main`.
 4. Read the deployed URL from the `github-pages` environment/workflow deployment.
 
-The live app for `vineeth-pydi/FreeLingo` is [vineeth-pydi.github.io/FreeLingo](https://vineeth-pydi.github.io/FreeLingo/). All application asset paths are relative so project Pages URLs work correctly.
+The project Pages address for `vineeth-pydi/DailyLingo` is [vineeth-pydi.github.io/DailyLingo](https://vineeth-pydi.github.io/DailyLingo/). All application asset paths are relative so project Pages URLs work correctly. Confirm publication in the latest `github-pages` deployment before treating a local build as live.
 
 See [GitHub's custom Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages). For a fork, change the repository URL in `src/config.js` before publishing.
 
@@ -60,6 +63,7 @@ See [GitHub's custom Pages workflow documentation](https://docs.github.com/en/pa
 public/                  HTML, CSS, PWA manifest, service worker, SVG icon
 src/content.js           Languages, phrases, reading aids, lesson metadata
 src/core.js              Scheduling, answer checking, state validation
+src/drafts.js            Safe lesson-draft restoration
 src/app.js               Views, interaction, browser persistence, audio
 src/config.js            Public repository link
 src/speech.js            Speaking studio, voices, local recording, optional transcription
@@ -71,13 +75,13 @@ tests/                   Learning logic, content, and static build tests
 
 ## Privacy and limitations
 
-Progress lives in this browser's local storage. Clearing browser data or using another device does not automatically preserve it; export a backup. Backups contain practice history, preferences, and phrase IDs, so share them intentionally.
+DailyLingo keeps the original FreeLingo storage keys and backup format so the rename preserves existing progress on the same browser and origin. Progress lives in this browser's local storage. Clearing browser data or using another device does not automatically preserve it; export a backup. Backups contain practice history, preferences, and phrase IDs, so share them intentionally.
 
-There are no analytics, trackers, app-managed accounts, or server-side learner records. GitHub Pages may receive normal hosting request data under its own policies. Optional audio uses the browser/OS speech service; processing location and available voices depend on the platform. Speaking requests microphone access only when you choose Record my voice or Check spoken words. Local recordings remain in tab memory; FreeLingo does not upload them. Navigation, hiding the tab, or time limits stop microphone capture. Optional browser transcription may send audio to the browser provider and may need internet access; it starts only after an explicit opt-in.
+There are no analytics, trackers, app-managed accounts, or server-side learner records. GitHub Pages may receive normal hosting request data under its own policies. Optional audio uses the browser/OS speech service; processing location and available voices depend on the platform. Speaking requests microphone access only when you choose Record my voice or Check spoken words. Local recordings remain in tab memory; DailyLingo does not upload them. Navigation, hiding the tab, or time limits stop microphone capture. Optional browser transcription may send audio to the browser provider and may need internet access; it starts only after an explicit opt-in.
 
 Voice preferences are stored separately from progress backups. Transcription consent and recordings are never stored in a backup. Speech availability depends on browser, device, voice packs, and language. The word check does not measure accent, phonemes, or Mandarin tone accuracy. See [SPEECH_RESOURCES.md](SPEECH_RESOURCES.md) for researched datasets, licenses, and the subscription-free speech roadmap.
 
-Phrase examples sometimes use a specific gender, register, or regional word. Notes highlight some cases; approved variants and native reference recordings are future work. Arabic is MSA only in this alpha. Use one active learning tab to avoid conflicting progress edits. Offline caches may be evicted by the browser; reload online to cache again.
+Phrase examples sometimes use a specific gender, register, or regional word. Notes highlight some cases; approved variants and native reference recordings are future work. Arabic is MSA only in this alpha. Use one active learning tab to avoid conflicting progress edits. Offline caches may be evicted by the browser; reload online to cache again. Cache cleanup is scoped to this app; caches for an older `/FreeLingo/` installation are preserved. Open the new `/DailyLingo/` address online once to cache the renamed app. Existing home-screen shortcuts may still point at the old address; install the renamed app from its new address.
 
 ## Contribute
 

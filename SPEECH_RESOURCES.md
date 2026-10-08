@@ -4,7 +4,7 @@ Researched 2026-10-08. These are candidate resources, not bundled assets. The ap
 
 ## Datasets
 
-| Dataset and primary source | Languages relevant to FreeLingo | License shown by publisher | Recommended use and constraints |
+| Dataset and primary source | Languages relevant to DailyLingo | License shown by publisher | Recommended use and constraints |
 | --- | --- | --- | --- |
 | [Mozilla Common Voice](https://mozilladatacollective.com/datasets) · [collection source on GitHub](https://github.com/common-voice/common-voice) | Check English, Spanish, Mandarin (`zh-CN`), Hindi, and Arabic locale releases individually | Common Voice releases generally CC0-1.0; other Data Collective datasets have different licenses | Diverse voices for recognition evaluation or fine-tuning. Use the release's datasheet, validated clips, and download conditions. Current Common Voice distribution is through Mozilla Data Collective, not necessarily old Hugging Face mirrors. Dataset releases can require an account. |
 | [Google FLEURS on Hugging Face](https://huggingface.co/datasets/google/fleurs) | `en_us`, `es_419`, `cmn_hans_cn`, `hi_in`, `ar_eg` | CC BY 4.0 | A useful first multilingual ASR benchmark. Approximately 12 hours per language across 102 languages. Keep test data out of training. Arabic's `ar_eg` config is a locale identifier; review actual recordings with an MSA specialist before using them as course reference audio. |
@@ -62,4 +62,4 @@ The learner should never need a subscription, payment, API key, or AI account fo
 
 ## Choosing a coding assistant
 
-Astra is not a runtime requirement for FreeLingo and is not needed for this first speech feature set. Continue with the current coding model for implementation and integration. Luna suits small, clearly specified changes such as copy, CSS, a bounded lesson addition, or a small bug fix; use Sol for broader technical integration. Astra can help with ambiguous architecture or difficult research, but it cannot replace native-language review or a speech evaluation set. This is a project recommendation based on [official OpenAI model-selection guidance](https://developers.openai.com/api/docs/guides/model-selection), not a measured comparison on this repository.
+Astra is not a runtime requirement for DailyLingo and is not needed for this first speech feature set. Continue with the current coding model for implementation and integration. Luna suits small, clearly specified changes such as copy, CSS, a bounded lesson addition, or a small bug fix; use Sol for broader technical integration. Astra can help with ambiguous architecture or difficult research, but it cannot replace native-language review or a speech evaluation set. This is a project recommendation based on [official OpenAI model-selection guidance](https://developers.openai.com/api/docs/guides/model-selection), not a measured comparison on this repository.

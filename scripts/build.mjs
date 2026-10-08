@@ -1,9 +1,12 @@
-import { cp, mkdir, writeFile, readdir, readFile } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { cp, mkdir, writeFile, readdir, readFile, rm } from 'node:fs/promises';
+import { resolve, join, relative, sep } from 'node:path';
 import { deflateSync } from 'node:zlib';
 
 const root = resolve(import.meta.dirname, '..');
 const output = join(root, 'dist');
+// Remove generated output only after verifying its exact repository-local path.
+if (resolve(output) !== resolve(root, 'dist') || output === root) throw new Error('Unsafe build output path');
+await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 await cp(join(root, 'public'), output, { recursive: true });
 await cp(join(root, 'src'), join(output, 'src'), { recursive: true });
@@ -36,7 +39,7 @@ function icon(size) {
     const rounded = Math.hypot(Math.max(Math.abs(px - 96) - 49, 0), Math.max(Math.abs(py - 96) - 49, 0)) <= 47;
     const white = lines.some(line => distance(px, py, ...line) < 4.5);
     const offset = y * (size * 4 + 1) + 1 + x * 4;
-    raw.set(white ? [255,249,239,255] : [236,107,66,rounded ? 255 : 0], offset);
+    raw.set(white ? [255,249,239,255] : [180,74,48,rounded ? 255 : 0], offset);
   }
   const header = Buffer.alloc(13); header.writeUInt32BE(size, 0); header.writeUInt32BE(size, 4); header[8] = 8; header[9] = 6;
   return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]), chunk('IHDR', header), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
@@ -50,10 +53,10 @@ const hash = createHash('sha256');
 async function hashFiles(directory) {
   for (const entry of (await readdir(directory, { withFileTypes: true })).sort((a,b) => a.name.localeCompare(b.name))) {
     if (entry.isDirectory()) await hashFiles(join(directory, entry.name));
-    else if (entry.name !== 'sw.js') { hash.update(entry.name); hash.update(await readFile(join(directory, entry.name))); }
+    else if (entry.name !== 'sw.js') { hash.update(relative(output, join(directory, entry.name)).split(sep).join('/')); hash.update(await readFile(join(directory, entry.name))); }
   }
 }
 await hashFiles(output);
-const serviceWorker = (await readFile(join(output, 'sw.js'), 'utf8')).replace("'freelingo-v1'", `'freelingo-${hash.digest('hex').slice(0, 12)}'`);
+const serviceWorker = (await readFile(join(output, 'sw.js'), 'utf8')).replace("'dailylingo-v1'", `'dailylingo-${hash.digest('hex').slice(0, 12)}'`);
 await writeFile(join(output, 'sw.js'), serviceWorker);
-console.log('Built FreeLingo in dist/ — no external dependencies or secrets required.');
+console.log('Built DailyLingo in dist/ — no external dependencies or secrets required.');

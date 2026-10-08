@@ -1,8 +1,26 @@
-# FreeLingo launch status
+# DailyLingo launch status
 
 Updated: 2026-10-08 (America/Chicago).
 
-## Speech update — v0.2.0
+## DailyLingo update — v0.3.0
+
+Release scope: DailyLingo branding; daily next-step guidance and draft-first lesson resumption; source-language choice on Home; phrase search and a due-review filter; readable responsive interface improvements; validated lesson recovery; speaking lifecycle fixes; clean static packaging; and app-scoped offline caches. The five original starter courses remain community alpha content awaiting independent language review.
+
+Original FreeLingo storage IDs and backup formats are preserved. Existing progress stays available on the same browser and origin. Old `/FreeLingo/` installed shortcuts may need replacing with an installation from `/DailyLingo/`. An online first load at the new address establishes its offline cache.
+
+Current release checks and publication evidence are recorded below as they complete. Historical validation and publication records for v0.1.0 and v0.2.0 follow separately; they do not verify this release.
+
+### Current release validation
+
+- Syntax checks and all 37 automated tests passed. Coverage includes learning, valid and malformed drafts, review lifecycle persistence, keyboard focus, recording/transcription races, clean builds, and scope-safe offline caches.
+- All 20 target/prompt-language pairs across six lessons and three deterministic exercise patterns pass content and learning checks.
+- Browser checks completed all 12 activities in each of the five languages at 100%, verified six saved reviews and progress after reload, and checked seven screens at five viewport sizes (35 combinations) with no horizontal overflow.
+- Phrase search/filtering, draft-first resumption, review reload without duplicate counts, progress export/import, rejected malformed backups, and offline reload/lesson start passed in installed Microsoft Edge. Reduced-motion mode had no JavaScript page errors. Screenshots were inspected on desktop and at 375px.
+- Real microphone capture, installed native voice output, and independent native-speaker course review remain device/content checks; speech lifecycle tests use browser mocks.
+- Current repository target: [vineeth-pydi/DailyLingo](https://github.com/vineeth-pydi/DailyLingo).
+- Current Pages target: [DailyLingo](https://vineeth-pydi.github.io/DailyLingo/). Publication of v0.3.0 is pending.
+
+## Historical speech update — v0.2.0
 
 The Speaking studio now covers all five languages and existing lesson topics. It adds selectable browser voices, normal/slow playback, text hide/reveal, local 30-second recording with playback/download/deletion, and opt-in browser transcription. The word check is not a pronunciation score. The app requires no learner subscription, account, or paid API.
 
@@ -10,7 +28,7 @@ The static build completed using bundled Node.js v24.19.0. Microphone recording 
 
 Candidate speech datasets, their publisher licenses/download conditions, and the next implementation phases are documented in [SPEECH_RESOURCES.md](SPEECH_RESOURCES.md). No third-party corpus or model has been downloaded, bundled, or trained. The validation record below describes the original v0.1.0 release.
 
-## Ready locally
+## Historical v0.1.0 local readiness
 
 - v0.1.0 community alpha built as a responsive, installable static web app.
 - Five languages; 30 lessons; 180 phrase forms; recognition, arrangement, typed recall, and spaced reviews.
@@ -18,7 +36,7 @@ Candidate speech datasets, their publisher licenses/download conditions, and the
 - Source committed on local branch `main`.
 - Static output is in ignored `dist/`; no secrets, learner backups, or preview artifacts are included in Git.
 
-## Validation completed
+## Historical v0.1.0 validation
 
 - JavaScript syntax checks passed.
 - Nine automated tests passed using Node.js v24.19.0. CI is configured for Node.js 22.
@@ -31,7 +49,7 @@ Candidate speech datasets, their publisher licenses/download conditions, and the
 - The local preview server was stopped, then the app reloaded successfully from its offline cache. The five-course catalog and Mandarin lesson still worked. No browser console errors were reported for that check.
 - The preview server was stopped after verification. Start again with `npm run dev` using Node.js 22+.
 
-## Published
+## Historical v0.1.0 publication
 
 Public repository: [vineeth-pydi/FreeLingo](https://github.com/vineeth-pydi/FreeLingo).
 

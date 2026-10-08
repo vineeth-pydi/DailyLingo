@@ -1,4 +1,4 @@
-# Contributing to FreeLingo
+# Contributing to DailyLingo
 
 Help learners connect through better content and a more usable app.
 

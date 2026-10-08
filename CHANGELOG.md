@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 — 2026-10-08
+
+- Renamed the app and repository to DailyLingo with updated metadata, install name, source links, and documentation.
+- Clear daily next-step guidance, draft-first lesson resumption, and a source-language control on Home.
+- Searchable phrase collection with a due-review filter, larger typography, clearer selected states, and comfortable touch targets.
+- Every lesson phrase now receives a production question; successful early practice keeps its scheduled review date.
+- Review answers save as they are checked and survive refresh, backgrounding, and closing without duplicate counts.
+- Improved script-aware matching, Mandarin word banks, backup validation, lesson-draft validation, and speaking lifecycle handling.
+- Clean static builds and app-scoped offline caches; other Pages apps and legacy installed paths keep their caches.
+- Original FreeLingo progress keys and backup format remain compatible.
+
 ## 0.2.0 — 2026-10-08
 
 - Speaking studio across all five languages and six lesson topics.

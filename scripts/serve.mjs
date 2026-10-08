@@ -18,4 +18,4 @@ const server = createServer(async (request, response) => {
   } catch { response.writeHead(404, { 'Content-Type': 'text/plain' }); response.end('Not found'); }
 });
 server.on('error', error => { console.error(error.message); process.exitCode = 1; });
-server.listen(port, '127.0.0.1', () => console.log(`FreeLingo preview: http://127.0.0.1:${port}`));
+server.listen(port, '127.0.0.1', () => console.log(`DailyLingo preview: http://127.0.0.1:${port}`));

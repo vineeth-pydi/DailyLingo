@@ -1,16 +1,22 @@
+# DailyLingo product update — 2026-10-08
+
+v0.3.0 renames FreeLingo to DailyLingo and improves the daily practice flow, phrase discovery, readability, lesson recovery, speech lifecycle, and offline packaging. Existing progress and backups remain compatible. The subscription-free, dependency-free static architecture and five starter courses remain the foundation.
+
+Current source target: [vineeth-pydi/DailyLingo](https://github.com/vineeth-pydi/DailyLingo). Current Pages target: [DailyLingo](https://vineeth-pydi.github.io/DailyLingo/). See [LAUNCH_STATUS.md](LAUNCH_STATUS.md) for release validation and publication evidence. The older launch notes below are historical, and curriculum roadmap version labels describe aspirations rather than delivered release scope.
+
 # Speech expansion — 2026-10-08
 
 The subscription-free core remains static and open source. v0.2.0 adds a Speaking studio with voice selection, slow playback, local recording/listen-back, and opt-in browser transcription. No paid AI API is required. Browser transcription checks words only and can use a remote browser-provider service; recordings are otherwise local and temporary.
 
 The next implementation sequence is native reference audio, optional downloadable local ASR, human-evaluated pronunciation feedback, and fuller curricula. Datasets, licensing, provenance requirements, and model-selection recommendations are in [SPEECH_RESOURCES.md](SPEECH_RESOURCES.md). The current coding model can implement this; Astra is optional for difficult research, and Luna can handle bounded changes.
 
-# FreeLingo rebuild plan
+# Original FreeLingo rebuild plan
 
 ## Open source launch update — 2026-10-08
 
-**Launch target:** public GitHub repository `vineeth-pydi/FreeLingo`, MIT license, and GitHub Pages website. The app is a PWA, so the same codebase serves the website and an installable phone/desktop app. Native store distribution is a later milestone.
+**Original launch target:** public GitHub repository `vineeth-pydi/FreeLingo`, MIT license, and GitHub Pages website. The app is a PWA, so the same codebase serves the website and an installable phone/desktop app. Native store distribution is a later milestone.
 
-**Launch verified:** [public source](https://github.com/vineeth-pydi/FreeLingo) and [live app](https://vineeth-pydi.github.io/FreeLingo/) are published. The initial [GitHub Actions build and deployment](https://github.com/vineeth-pydi/FreeLingo/actions/runs/37845084544) passed, and the deployed website was opened successfully in the browser. Private vulnerability reporting is enabled. See `LAUNCH_STATUS.md` for validation evidence and release limits.
+**Original launch verified:** [public source](https://github.com/vineeth-pydi/FreeLingo) and [live app](https://vineeth-pydi.github.io/FreeLingo/) are published. The initial [GitHub Actions build and deployment](https://github.com/vineeth-pydi/FreeLingo/actions/runs/37845084544) passed, and the deployed website was opened successfully in the browser. Private vulnerability reporting is enabled. See `LAUNCH_STATUS.md` for validation evidence and release limits.
 
 **v0.1.0 implemented scope:** a dependency-free static application with five starter courses, six lessons and 36 phrases per course; 12 activities per lesson; recognition, sentence arrangement, and typed recall; optional browser speech and reading aids; source-language prompt selection; device-local progress and lesson drafts; scheduled reviews; daily goals/activity views; JSON backup import/export; progress deletion; responsive/RTL layouts; offline caching; and installation metadata/icons.
 
@@ -60,7 +66,7 @@ GitHub workflow reference: [Using custom workflows with GitHub Pages](https://do
 
 Rebuild FreeLingo as a practical, mobile-first language teaching tool that takes a beginner from first phrases to useful everyday conversations. The first release will offer five target languages: English, Mandarin Chinese, Hindi, Spanish, and Arabic. Lessons should teach communication, listening, reading, and writing in a connected sequence rather than reward isolated word matching.
 
-This is a greenfield plan because the workspace contained no source files or product documentation at planning time. The existing name, FreeLingo, is treated as the working product name.
+This original plan was written before source files existed in the workspace. FreeLingo was the working product name; the current name is DailyLingo.
 
 ## Language selection
 

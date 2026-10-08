@@ -1,2 +1,2 @@
-// Set to the public repository URL when GitHub publication is configured.
-export const REPOSITORY_URL = 'https://github.com/vineeth-pydi/FreeLingo';
+// Public source repository used by the app's source link.
+export const REPOSITORY_URL = 'https://github.com/vineeth-pydi/DailyLingo';
