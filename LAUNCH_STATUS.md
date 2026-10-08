@@ -8,7 +8,7 @@ Settings now uses a gear in the sidebar and header. A separate sun button switch
 
 Local validation: all 63 existing automated tests and syntax checks passed. Edge browser checks passed 137 layout checks and 100 lesson states across light/dark modes, desktop/mobile, all seven screens, and all five writing systems. Verified keyboard control/focus, 320px header targets, saved/system preferences, active word-check preservation, real offline reloads, and storage-denied recovery. Desktop and mobile screenshots were inspected.
 
-Publication verification will be recorded after deployment.
+Release commit [`ee7fac3`](https://github.com/vineeth-pydi/DailyLingo/commit/ee7fac3c42d0e1bbfb0b2432f5b33e99dda6df9a) passed the [GitHub Pages validation and deployment workflow](https://github.com/vineeth-pydi/DailyLingo/actions/runs/37859823569) on 2026-10-08. The published app passed the same theme browser checks above, including real offline persistence. All 16 runtime assets matched the tested build exactly by SHA256.
 
 ## Speaking and listening update — v0.4.0
 
