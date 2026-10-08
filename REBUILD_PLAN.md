@@ -1,3 +1,9 @@
+# Speech expansion — 2026-10-08
+
+The subscription-free core remains static and open source. v0.2.0 adds a Speaking studio with voice selection, slow playback, local recording/listen-back, and opt-in browser transcription. No paid AI API is required. Browser transcription checks words only and can use a remote browser-provider service; recordings are otherwise local and temporary.
+
+The next implementation sequence is native reference audio, optional downloadable local ASR, human-evaluated pronunciation feedback, and fuller curricula. Datasets, licensing, provenance requirements, and model-selection recommendations are in [SPEECH_RESOURCES.md](SPEECH_RESOURCES.md). The current coding model can implement this; Astra is optional for difficult research, and Luna can handle bounded changes.
+
 # FreeLingo rebuild plan
 
 ## Open source launch update — 2026-10-08

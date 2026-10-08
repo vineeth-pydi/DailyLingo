@@ -1,6 +1,6 @@
 # Security policy
 
-Supported release: the current `main` branch and v0.1.x alpha.
+Supported release: the current `main` branch and v0.2.x alpha.
 
 FreeLingo is a static app. It stores learner data locally and does not use app API keys or server accounts. Imported progress is validated before it replaces device data. This does not make browser storage a secure place for secrets; never store credentials there.
 

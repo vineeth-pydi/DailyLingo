@@ -1,6 +1,7 @@
 import { languages, units, concepts, findLanguage, findConcept, findUnit } from './content.js';
 import { STORAGE_KEY, defaultState, validateState, dayKey, dueReviews, streak, exerciseSet, completeLesson, addActivity, scheduleReview, matchesAnswer, DAY } from './core.js';
 import { REPOSITORY_URL } from './config.js';
+import { mountSpeechPractice, disposeSpeechPractice, speakPhrase, resetSpeechPreferences } from './speech.js';
 
 const app = document.querySelector('#app');
 const dialog = document.querySelector('#lesson-dialog');
@@ -68,26 +69,28 @@ function toast(message) {
   toastTimer = setTimeout(() => node.classList.remove('visible'), 6500);
 }
 
-const route = () => ['home', 'courses', 'review', 'progress', 'settings', 'about'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+const route = () => ['home', 'courses', 'speaking', 'review', 'progress', 'settings', 'about'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
 const completedCount = language => units.filter(unit => state.completed[`${language}:${unit.id}`]).length;
 const currentLanguage = () => findLanguage(state.target);
 const nextUnit = () => units.find(unit => !state.completed[`${state.target}:${unit.id}`]) ?? units[0];
 const languageBadge = (language, cls = '') => `<span class="language-badge ${cls}" style="--badge:${language.color};--badge-ink:${language.ink}" lang="${language.id}" dir="${language.direction}">${language.id === 'zh' ? '文' : language.id === 'hi' ? 'अ' : language.id === 'ar' ? 'ع' : language.short}</span>`;
 
 function render() {
+  disposeSpeechPractice();
   const view = route();
   const language = currentLanguage();
   const due = dueReviews(state).length;
-  const titles = { home: 'Your learning space', courses: 'Explore languages', review: 'Make it stick', progress: 'Your progress', settings: 'Make yourself at home', about: 'Open by design' };
+  const titles = { home: 'Your learning space', courses: 'Explore languages', speaking: 'Find your voice', review: 'Make it stick', progress: 'Your progress', settings: 'Make yourself at home', about: 'Open by design' };
   app.innerHTML = `
     <aside class="sidebar">
       <a href="#home" class="brand" aria-label="FreeLingo home">${logo}<span>Free<span class="brand-light">Lingo</span></span></a>
       <span class="sidebar-label">YOUR LITTLE DAILY ADVENTURE</span>
-      <nav aria-label="Main navigation">${[['home', 'home', 'Learn'], ['courses', 'globe', 'Languages'], ['review', 'repeat', 'Review'], ['progress', 'chart', 'Progress']].map(([id, glyph, label]) => `<a href="#${id}" ${view === id ? 'aria-current="page"' : ''} class="nav-link ${view === id ? 'active' : ''}">${icon(glyph)}<span>${label}</span>${id === 'review' && due ? `<span class="nav-count">${due}</span>` : ''}</a>`).join('')}</nav>
+      <nav aria-label="Main navigation">${[['home', 'home', 'Learn'], ['courses', 'globe', 'Languages'], ['speaking', 'speaker', 'Speaking'], ['review', 'repeat', 'Review'], ['progress', 'chart', 'Progress']].map(([id, glyph, label]) => `<a href="#${id}" ${view === id ? 'aria-current="page"' : ''} class="nav-link ${view === id ? 'active' : ''}">${icon(glyph)}<span>${label}</span>${id === 'review' && due ? `<span class="nav-count">${due}</span>` : ''}</a>`).join('')}</nav>
       <div class="sidebar-bottom"><div class="open-note">${icon('leaf')}<strong>Knowledge belongs<br>to everyone.</strong><p>Free to learn.<br>Open to build together.</p><a href="#about">Meet the project ${icon('arrow')}</a></div><a href="#settings" class="nav-link ${view === 'settings' ? 'active' : ''}" ${view === 'settings' ? 'aria-current="page"' : ''}>${icon('settings')}<span>Settings</span></a><div class="profile"><span class="avatar">Y</span><div><strong>Your learning space</strong><small>Saved on this device</small></div><span class="profile-dot" title="Device-local progress"></span></div></div>
     </aside>
     <div class="workspace"><header class="topbar"><span>${escape(titles[view])}</span><div class="header-actions"><span class="streak-chip">${icon('fire')} ${streak(state)} <span>day${streak(state) === 1 ? '' : 's'}</span></span><label class="language-select-label">${languageBadge(language, 'tiny')}<select id="target-header" aria-label="Learning language">${languages.map(l => `<option value="${l.id}" ${l.id === state.target ? 'selected' : ''}>${l.name}</option>`).join('')}</select></label><a class="icon-button header-settings" href="#settings" aria-label="Practice settings">${icon('settings')}</a></div></header>
-    <main id="main" tabindex="-1">${view === 'home' ? homeView() : view === 'courses' ? coursesView() : view === 'review' ? reviewView() : view === 'progress' ? progressView() : view === 'settings' ? settingsView() : aboutView()}</main><footer class="footer"><span>A little practice. A world of possibility.</span><a href="#about">Free & open source ${icon('github')}</a></footer></div>`;
+    <main id="main" tabindex="-1">${view === 'home' ? homeView() : view === 'courses' ? coursesView() : view === 'speaking' ? '' : view === 'review' ? reviewView() : view === 'progress' ? progressView() : view === 'settings' ? settingsView() : aboutView()}</main><footer class="footer"><span>A little practice. A world of possibility.</span><a href="#about">Free & open source ${icon('github')}</a></footer></div>`;
+  if (view === 'speaking') mountSpeechPractice(document.querySelector('#main'), language, findLanguage(state.source));
   document.title = `FreeLingo · ${titles[view]}`;
 }
 
@@ -136,11 +139,11 @@ function progressView() {
 }
 
 function settingsView() {
-  return `<section class="page-intro"><p class="eyebrow">LEARNING AT YOUR PACE</p><h1>A space that feels like yours.</h1><p>Choose your rhythm. Take your progress with you.</p></section><div class="settings-grid"><section class="settings-card"><h2>Your practice</h2><label class="field-label" for="target-settings">I’m learning</label><select id="target-settings">${languages.map(l => `<option value="${l.id}" ${l.id === state.target ? 'selected' : ''}>${l.name} · ${l.native}</option>`).join('')}</select><label class="field-label" for="source-settings">Translate prompts into</label><select id="source-settings">${languages.filter(l => l.id !== state.target).map(l => `<option value="${l.id}" ${l.id === state.source ? 'selected' : ''}>${l.name} · ${l.native}</option>`).join('')}</select><p class="field-help">Menus are in English. Phrase meanings use this language.</p><label class="field-label" for="daily-goal">Daily practice goal</label><select id="daily-goal">${[5, 10, 15, 20].map(value => `<option value="${value}" ${value === state.goal ? 'selected' : ''}>${value} minutes</option>`).join('')}</select><label class="toggle-row"><span><strong>Pronunciation guides</strong><small>Show Pinyin and script reading aids</small></span><input type="checkbox" id="show-aids" ${state.showAids ? 'checked' : ''}></label><p class="field-help">Reading aids are approximations, not a replacement for listening or learning the script.</p></section><section class="settings-card"><h2>Your data stays yours</h2><p>Lessons and progress are stored in this browser. There are no accounts, tracking scripts, or app servers receiving your answers.</p><p class="field-help">Clearing browser data clears your progress. Export a backup before switching browsers or devices.</p><div class="settings-actions"><button class="button secondary" data-action="export">${icon('download')} Export progress</button><label class="button secondary import-label" for="import-file">Import backup<input type="file" id="import-file" accept=".json,application/json"></label></div><h3>Audio & privacy</h3><p class="field-help">Optional audio uses your browser’s speech service. Available voices and whether speech is processed on-device depend on your browser and operating system. No microphone is used.</p><h3>Install FreeLingo</h3><p class="field-help">Use your browser’s “Install app” or “Add to Home Screen” option. Once loaded online, the app shell and lessons are cached for offline practice. Browser voices may still need a connection.</p><button class="button secondary" data-action="install">Install help ${icon('arrow')}</button><hr><button class="danger-button" data-action="reset">Erase progress on this device</button><p class="field-help">This removes all lesson history and settings. Export first if you want a backup.</p></section></div>`;
+  return `<section class="page-intro"><p class="eyebrow">LEARNING AT YOUR PACE</p><h1>A space that feels like yours.</h1><p>Choose your rhythm. Take your progress with you.</p></section><div class="settings-grid"><section class="settings-card"><h2>Your practice</h2><label class="field-label" for="target-settings">I’m learning</label><select id="target-settings">${languages.map(l => `<option value="${l.id}" ${l.id === state.target ? 'selected' : ''}>${l.name} · ${l.native}</option>`).join('')}</select><label class="field-label" for="source-settings">Translate prompts into</label><select id="source-settings">${languages.filter(l => l.id !== state.target).map(l => `<option value="${l.id}" ${l.id === state.source ? 'selected' : ''}>${l.name} · ${l.native}</option>`).join('')}</select><p class="field-help">Menus are in English. Phrase meanings use this language.</p><label class="field-label" for="daily-goal">Daily practice goal</label><select id="daily-goal">${[5, 10, 15, 20].map(value => `<option value="${value}" ${value === state.goal ? 'selected' : ''}>${value} minutes</option>`).join('')}</select><label class="toggle-row"><span><strong>Pronunciation guides</strong><small>Show Pinyin and script reading aids</small></span><input type="checkbox" id="show-aids" ${state.showAids ? 'checked' : ''}></label><p class="field-help">Reading aids are approximations, not a replacement for listening or learning the script.</p></section><section class="settings-card"><h2>Your data stays yours</h2><p>Lessons and progress are stored in this browser. There are no accounts, tracking scripts, or app servers receiving your answers.</p><p class="field-help">Clearing browser data clears your progress. Export a backup before switching browsers or devices.</p><div class="settings-actions"><button class="button secondary" data-action="export">${icon('download')} Export progress</button><label class="button secondary import-label" for="import-file">Import backup<input type="file" id="import-file" accept=".json,application/json"></label></div><h3>Audio & privacy</h3><p class="field-help">Optional audio uses your browser’s speech service. Available voices and whether speech is processed on-device depend on your browser and operating system. Speaking lets you record locally and opt into browser transcription, which may send audio to a browser speech provider. Microphone access starts only when you choose a recording or word check. <a href="#speaking">Open Speaking</a>.</p><h3>Install FreeLingo</h3><p class="field-help">Use your browser’s “Install app” or “Add to Home Screen” option. Once loaded online, the app shell and lessons are cached for offline practice. Browser voices may still need a connection.</p><button class="button secondary" data-action="install">Install help ${icon('arrow')}</button><hr><button class="danger-button" data-action="reset">Erase progress on this device</button><p class="field-help">This removes all lesson history and settings. Export first if you want a backup.</p></section></div>`;
 }
 
 function aboutView() {
-  return `<section class="page-intro"><p class="eyebrow">LEARNING BELONGS TO EVERYONE</p><h1>Free to learn.<br>Open to build together.</h1><p>FreeLingo is a community alpha for language learning. No subscription. No account required.</p></section><div class="about-grid"><section class="settings-card"><span class="large-soft-icon">${icon('globe')}</span><h2>A small beginning, a shared future.</h2><p>This first release covers 36 starter phrases in English, Spanish, Mandarin, Hindi, and Modern Standard Arabic. You can learn, practice recall, and keep your progress on your own device.</p><p>Courses are original starter content awaiting independent native-speaker review. Phrases may use a specific gender or politeness form. We welcome corrections with context and regional alternatives.</p><a class="button primary" href="#courses">Find your language ${icon('arrow')}</a></section><section class="settings-card"><h2>Help the next learner</h2><p>Contribute a phrase correction, language review, accessibility improvement, or code change. The source code and original course text are available under the MIT license.</p>${REPOSITORY_URL ? `<a class="button secondary" href="${escape(REPOSITORY_URL)}" target="_blank" rel="noopener">${icon('github')} View on GitHub</a>` : '<p class="field-help">The repository is prepared for GitHub publication. The public repository link will appear here once configured.</p>'}<h3>What comes next</h3><ul class="roadmap-list"><li>Native-speaker review and approved regional variants</li><li>Recorded audio and richer pronunciation support</li><li>Script foundations and grammar in context</li><li>More complete beginner curricula and guided dialogues</li><li>An optional way to sync progress across devices</li></ul><p class="field-help">Version 0.1.0 · Community alpha · No certified proficiency claims</p></section></div>`;
+  return `<section class="page-intro"><p class="eyebrow">LEARNING BELONGS TO EVERYONE</p><h1>Free to learn.<br>Open to build together.</h1><p>FreeLingo is a community alpha for language learning. No subscription. No account required.</p></section><div class="about-grid"><section class="settings-card"><span class="large-soft-icon">${icon('globe')}</span><h2>A small beginning, a shared future.</h2><p>This first release covers 36 starter phrases in English, Spanish, Mandarin, Hindi, and Modern Standard Arabic. You can learn, practice recall, and keep your progress on your own device.</p><p>Courses are original starter content awaiting independent native-speaker review. Phrases may use a specific gender or politeness form. We welcome corrections with context and regional alternatives.</p><a class="button primary" href="#courses">Find your language ${icon('arrow')}</a></section><section class="settings-card"><h2>Help the next learner</h2><p>Contribute a phrase correction, language review, accessibility improvement, or code change. The source code and original course text are available under the MIT license.</p>${REPOSITORY_URL ? `<a class="button secondary" href="${escape(REPOSITORY_URL)}" target="_blank" rel="noopener">${icon('github')} View on GitHub</a>` : '<p class="field-help">The repository is prepared for GitHub publication. The public repository link will appear here once configured.</p>'}<h3>What comes next</h3><ul class="roadmap-list"><li>Native-speaker review and approved regional variants</li><li>Recorded audio and richer pronunciation support</li><li>Script foundations and grammar in context</li><li>More complete beginner curricula and guided dialogues</li><li>An optional way to sync progress across devices</li></ul><p class="field-help">Version 0.2.0 · Community alpha · No certified proficiency claims</p></section></div>`;
 }
 
 function setTarget(id) {
@@ -253,17 +256,8 @@ function closeLesson() {
 
 function speechSynthesisSafeCancel() { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
 function speak(conceptId) {
-  if (!('speechSynthesis' in window)) { toast('This browser does not support audio. Read the phrase and use its pronunciation guide.'); return; }
-  const item = findConcept(conceptId); if (!item) return;
-  const language = currentLanguage();
-  const voices = window.speechSynthesis.getVoices();
-  const voice = voices.find(v => v.lang.toLowerCase() === language.locale.toLowerCase()) ?? voices.find(v => v.lang.toLowerCase().startsWith(language.id));
-  if (!voice) { toast(`No ${language.name} voice is available on this device. You can add a voice in your device settings or use the text guide.`); return; }
-  speechSynthesisSafeCancel();
-  const utterance = new SpeechSynthesisUtterance(item.forms[state.target]);
-  utterance.lang = language.locale; utterance.voice = voice; utterance.rate = 0.8;
-  utterance.onerror = () => toast('Audio could not play. This voice may need a connection. You can continue with the text.');
-  window.speechSynthesis.speak(utterance);
+  const item = findConcept(conceptId);
+  if (item) speakPhrase(item, currentLanguage(), false, toast);
 }
 
 function confirmAction(title, description, actionLabel, callback) {
@@ -298,7 +292,7 @@ document.addEventListener('click', async event => {
   else if (action === 'hint') { session.usedHint = true; renderExercise(); }
   else if (action === 'speak') speak(button.dataset.concept);
   else if (action === 'export') exportProgress();
-  else if (action === 'reset') confirmAction('Start with a fresh page?', 'This erases all FreeLingo progress on this device. Export a backup first if you want to keep it.', 'Erase progress', () => { state = defaultState(); save(); render(); toast('Progress erased. Your next adventure is ready.'); });
+  else if (action === 'reset') confirmAction('Start with a fresh page?', 'This erases all FreeLingo progress on this device. Export a backup first if you want to keep it.', 'Erase progress', () => { resetSpeechPreferences(); state = defaultState(); save(); render(); toast('Progress erased. Your next adventure is ready.'); });
   else if (action === 'install') {
     if (installPrompt) { await installPrompt.prompt(); installPrompt = null; }
     else toast('Open your browser menu and choose “Install app” or “Add to Home Screen.” In Safari on iPhone, use Share → Add to Home Screen.');
@@ -328,7 +322,9 @@ document.addEventListener('change', async event => {
 
 dialog.addEventListener('cancel', event => { event.preventDefault(); closeLesson(); });
 window.addEventListener('hashchange', () => { render(); document.querySelector('#main').focus(); });
-window.addEventListener('beforeunload', () => saveDraft());
+window.addEventListener('beforeunload', () => { saveDraft(); disposeSpeechPractice(); });
+window.addEventListener('pagehide', () => disposeSpeechPractice());
+window.addEventListener('pageshow', event => { if (event.persisted) render(); });
 document.addEventListener('visibilitychange', () => { if (session) { if (document.hidden) saveDraft(); session.tick = Date.now(); } });
 window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt = event; });
 window.addEventListener('offline', () => toast('You’re offline. Lessons and progress still work; some browser voices may be unavailable.'));

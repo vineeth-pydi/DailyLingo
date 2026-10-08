@@ -1,5 +1,5 @@
 const CACHE = 'freelingo-v1';
-const ASSETS = ['./', './index.html', './styles.css', './src/app.js', './src/core.js', './src/content.js', './src/config.js', './icon.svg', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
+const ASSETS = ['./', './index.html', './styles.css', './src/app.js', './src/core.js', './src/content.js', './src/config.js', './src/speech.js', './icon.svg', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
 });

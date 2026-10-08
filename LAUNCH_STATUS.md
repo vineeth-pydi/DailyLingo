@@ -2,6 +2,14 @@
 
 Updated: 2026-10-08 (America/Chicago).
 
+## Speech update — v0.2.0
+
+The Speaking studio now covers all five languages and existing lesson topics. It adds selectable browser voices, normal/slow playback, text hide/reveal, local 30-second recording with playback/download/deletion, and opt-in browser transcription. The word check is not a pronunciation score. The app requires no learner subscription, account, or paid API.
+
+The static build completed using bundled Node.js v24.19.0. Microphone recording and transcription have not been exercised on physical devices; availability depends on browser permissions, speech services, installed voices, and language. No new local test run was requested for this update. The existing Pages workflow runs its checks during publication.
+
+Candidate speech datasets, their publisher licenses/download conditions, and the next implementation phases are documented in [SPEECH_RESOURCES.md](SPEECH_RESOURCES.md). No third-party corpus or model has been downloaded, bundled, or trained. The validation record below describes the original v0.1.0 release.
+
 ## Ready locally
 
 - v0.1.0 community alpha built as a responsive, installable static web app.

@@ -4,7 +4,7 @@
 
 FreeLingo is a free, open source, installable language learning website. Practice everyday phrases in **English, Spanish, Mandarin Chinese, Hindi, and Modern Standard Arabic**. No account, subscription, or API key is required.
 
-**Status: v0.1.0 community alpha.** These are original starter courses awaiting independent native-speaker review, not complete A1 curricula or certified assessments. Browser audio is synthesized when a compatible voice is available.
+**Status: v0.2.0 community alpha.** These are original starter courses awaiting independent native-speaker review, not complete A1 curricula or certified assessments. Browser audio is synthesized when a compatible voice is available.
 
 **[Open the app](https://vineeth-pydi.github.io/FreeLingo/) · [Source and contributions](https://github.com/vineeth-pydi/FreeLingo)**
 
@@ -13,7 +13,9 @@ FreeLingo is a free, open source, installable language learning website. Practic
 - Five courses, each with six lessons and 36 everyday phrases (180 phrase forms total).
 - A 12-activity lesson flow with recognition, word arrangement, and typed recall.
 - Script-aware checking: meaningful Hindi vowel signs and Spanish accents are preserved; optional Arabic vowel signs and punctuation are normalized.
-- Optional Pinyin and Hindi/Arabic reading aids, plus browser text-to-speech with voice availability feedback.
+- Optional Pinyin and Hindi/Arabic reading aids, plus a Speaking studio with normal/slow playback, voice selection, and an on-device-only voice filter.
+- Local microphone recording (up to 30 seconds), listening back, downloading, and deleting.
+- Optional browser transcription with explicit opt-in; recognized-word matching is not a pronunciation score.
 - Phrase reviews scheduled at 1, 3, 7, 14, and 30 days; missed/hinted items return after 10 minutes.
 - Device-local progress, daily goals, activity history, and resumable lesson drafts.
 - Prompt meanings in any of the five languages, distinct from the target language. Interface text is in English.
@@ -60,6 +62,7 @@ src/content.js           Languages, phrases, reading aids, lesson metadata
 src/core.js              Scheduling, answer checking, state validation
 src/app.js               Views, interaction, browser persistence, audio
 src/config.js            Public repository link
+src/speech.js            Speaking studio, voices, local recording, optional transcription
 scripts/build.mjs        Static packaging and dependency-free icon generation
 scripts/serve.mjs        Local HTTP preview
 tests/                   Learning logic, content, and static build tests
@@ -70,9 +73,11 @@ tests/                   Learning logic, content, and static build tests
 
 Progress lives in this browser's local storage. Clearing browser data or using another device does not automatically preserve it; export a backup. Backups contain practice history, preferences, and phrase IDs, so share them intentionally.
 
-There are no analytics, trackers, app-managed accounts, or server-side learner records. GitHub Pages may receive normal hosting request data under its own policies. Optional audio uses the browser/OS speech service; processing location and available voices depend on the platform. The app never requests microphone access.
+There are no analytics, trackers, app-managed accounts, or server-side learner records. GitHub Pages may receive normal hosting request data under its own policies. Optional audio uses the browser/OS speech service; processing location and available voices depend on the platform. Speaking requests microphone access only when you choose Record my voice or Check spoken words. Local recordings remain in tab memory; FreeLingo does not upload them. Navigation, hiding the tab, or time limits stop microphone capture. Optional browser transcription may send audio to the browser provider and may need internet access; it starts only after an explicit opt-in.
 
-Phrase examples sometimes use a specific gender, register, or regional word. Notes highlight some cases; approved variants and recorded audio are future work. Arabic is MSA only in this alpha. Use one active learning tab to avoid conflicting progress edits. Offline caches may be evicted by the browser; reload online to cache again.
+Voice preferences are stored separately from progress backups. Transcription consent and recordings are never stored in a backup. Speech availability depends on browser, device, voice packs, and language. The word check does not measure accent, phonemes, or Mandarin tone accuracy. See [SPEECH_RESOURCES.md](SPEECH_RESOURCES.md) for researched datasets, licenses, and the subscription-free speech roadmap.
+
+Phrase examples sometimes use a specific gender, register, or regional word. Notes highlight some cases; approved variants and native reference recordings are future work. Arabic is MSA only in this alpha. Use one active learning tab to avoid conflicting progress edits. Offline caches may be evicted by the browser; reload online to cache again.
 
 ## Contribute
 
